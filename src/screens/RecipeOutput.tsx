@@ -1,10 +1,13 @@
 import React from "react";
+import { calculateHydration } from "../logic/hydration";
+import { calculateYeast } from "../logic/yeast";
+import { useAppContext } from "../context/AppContext";
 
 type RecipeOutputProps = {
   profileId: string;
+  profile: any;
   data: {
     flour: number;
-    hydration: number;
     salt: number;
     sugar: number;
     fat: number;
@@ -16,17 +19,45 @@ type RecipeOutputProps = {
 
 const RecipeOutput: React.FC<RecipeOutputProps> = ({
   profileId,
+  profile,
   data,
   onBack,
   onRestart,
 }) => {
-  const water = Math.round((data.flour * data.hydration) / 100);
-  const salt = Math.round((data.flour * data.salt) / 100);
-  const sugar = Math.round((data.flour * data.sugar) / 100);
-  const fat = Math.round((data.flour * data.fat) / 100);
+  const { climate, mixing, productionMode, roomTemp } = useAppContext();
+
+  // Вода
+  const { water } = calculateHydration({
+    flour: data.flour,
+    salt: data.salt,
+    sugar: data.sugar,
+    fat: data.fat,
+    eggs: data.eggs,
+    profile,
+    climate,
+    mixing,
+    productionMode,
+    roomTemp,
+  });
+
+  // Дрожжи
+  const { yeast } = calculateYeast({
+    flour: data.flour,
+    sugar: data.sugar,
+    fat: data.fat,
+    profile,
+    climate,
+    productionMode,
+    roomTemp,
+  });
+
+  const saltGr = Math.round((data.flour * data.salt) / 100);
+  const sugarGr = Math.round((data.flour * data.sugar) / 100);
+  const fatGr = Math.round((data.flour * data.fat) / 100);
+  const eggsGr = data.eggs * 50;
 
   const total =
-    data.flour + water + salt + sugar + fat + data.eggs * 50; // условно 1 яйцо = 50 г
+    data.flour + water + saltGr + sugarGr + fatGr + eggsGr + yeast;
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px" }}>
@@ -37,10 +68,11 @@ const RecipeOutput: React.FC<RecipeOutputProps> = ({
       <div style={{ display: "grid", gap: "12px", marginBottom: "24px" }}>
         <div>Мука: <strong>{data.flour} г</strong></div>
         <div>Вода: <strong>{water} г</strong></div>
-        <div>Соль: <strong>{salt} г</strong></div>
-        <div>Сахар: <strong>{sugar} г</strong></div>
-        <div>Жиры: <strong>{fat} г</strong></div>
+        <div>Соль: <strong>{saltGr} г</strong></div>
+        <div>Сахар: <strong>{sugarGr} г</strong></div>
+        <div>Жиры: <strong>{fatGr} г</strong></div>
         <div>Яйца: <strong>{data.eggs} шт</strong></div>
+        <div>Дрожжи: <strong>{yeast} г</strong></div>
       </div>
 
       <h2>Итоговая масса: {total} г</h2>

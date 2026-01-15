@@ -1,11 +1,12 @@
 import React from "react";
+import NumberInput from "../components/NumberInput";
 
 type RecipeInputProps = {
   profileId: string;
   profile: any;
   initialValues: {
     flour: number;
-    hydration: number;
+    hydration: number; // временно оставляем, чтобы не ломать RecipeOutput
     salt: number;
     sugar: number;
     fat: number;
@@ -29,16 +30,40 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
   onBack,
   onCalculate,
 }) => {
+  // режим расчёта: по муке / по весу теста
+  const [mode, setMode] = React.useState<"flour" | "dough">("flour");
+
+  // поля
   const [flour, setFlour] = React.useState(initialValues.flour);
-  const [hydration, setHydration] = React.useState(initialValues.hydration);
+  const [targetDoughWeight, setTargetDoughWeight] = React.useState(0);
+
   const [salt, setSalt] = React.useState(initialValues.salt);
   const [sugar, setSugar] = React.useState(initialValues.sugar);
   const [fat, setFat] = React.useState(initialValues.fat);
   const [eggs, setEggs] = React.useState(initialValues.eggs);
 
+  // hydration пока берём из initialValues, чтобы RecipeOutput не ломался
+  const [hydration] = React.useState(initialValues.hydration);
+
   const handleSubmit = () => {
+    let finalFlour = flour;
+
+    if (mode === "dough" && targetDoughWeight > 0) {
+      // временная логика, пока не подключим матмодель
+      const water = (finalFlour * hydration) / 100;
+      const saltGr = (finalFlour * salt) / 100;
+      const sugarGr = (finalFlour * sugar) / 100;
+      const fatGr = (finalFlour * fat) / 100;
+      const eggsGr = eggs * 50;
+
+      const totalNow = finalFlour + water + saltGr + sugarGr + fatGr + eggsGr;
+      const ratio = targetDoughWeight / totalNow;
+
+      finalFlour = Math.round(finalFlour * ratio);
+    }
+
     onCalculate({
-      flour,
+      flour: finalFlour,
       hydration,
       salt,
       sugar,
@@ -57,66 +82,67 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
         Параметры теста: {profileId}
       </h1>
 
+      {/* Режим расчёта */}
+      <div style={{ marginBottom: "24px" }}>
+        <label style={{ marginRight: "16px" }}>
+          <input
+            type="radio"
+            checked={mode === "flour"}
+            onChange={() => setMode("flour")}
+          />
+          {" "}По муке
+        </label>
+
+        <label>
+          <input
+            type="radio"
+            checked={mode === "dough"}
+            onChange={() => setMode("dough")}
+          />
+          {" "}По весу теста
+        </label>
+      </div>
+
       <div style={{ display: "grid", gap: "16px" }}>
-        <label>
-          Мука (г)
-          <input
-            type="number"
+        {/* Мука или целевой вес */}
+        {mode === "flour" ? (
+          <NumberInput
+            label="Мука (г)"
             value={flour}
-            onChange={(e) => setFlour(Number(e.target.value))}
-            style={{ width: "100%", padding: "8px" }}
+            onChange={setFlour}
           />
-        </label>
+        ) : (
+          <NumberInput
+            label="Целевой вес теста (г)"
+            value={targetDoughWeight}
+            onChange={setTargetDoughWeight}
+          />
+        )}
 
-        <label>
-          Гидратация (%)
-          <input
-            type="number"
-            value={hydration}
-            onChange={(e) => setHydration(Number(e.target.value))}
-            style={{ width: "100%", padding: "8px" }}
-          />
-        </label>
+        {/* Проценты */}
+        <NumberInput
+          label="Соль (% от муки)"
+          value={salt}
+          onChange={setSalt}
+        />
 
-        <label>
-          Соль (% от муки)
-          <input
-            type="number"
-            value={salt}
-            onChange={(e) => setSalt(Number(e.target.value))}
-            style={{ width: "100%", padding: "8px" }}
-          />
-        </label>
+        <NumberInput
+          label="Сахар (% от муки)"
+          value={sugar}
+          onChange={setSugar}
+        />
 
-        <label>
-          Сахар (% от муки)
-          <input
-            type="number"
-            value={sugar}
-          onChange={(e) => setSugar(Number(e.target.value))}
-            style={{ width: "100%", padding: "8px" }}
-          />
-        </label>
+        <NumberInput
+          label="Жиры (% от муки)"
+          value={fat}
+          onChange={setFat}
+        />
 
-        <label>
-          Жиры (% от муки)
-          <input
-            type="number"
-            value={fat}
-            onChange={(e) => setFat(Number(e.target.value))}
-            style={{ width: "100%", padding: "8px" }}
-          />
-        </label>
-
-        <label>
-          Яйца (шт)
-          <input
-            type="number"
-            value={eggs}
-            onChange={(e) => setEggs(Number(e.target.value))}
-            style={{ width: "100%", padding: "8px" }}
-          />
-        </label>
+        <NumberInput
+          label="Яйца (шт)"
+          value={eggs}
+          onChange={setEggs}
+        />
       </div>
 
       <button

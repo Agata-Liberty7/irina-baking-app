@@ -1,0 +1,33 @@
+{
+  "none": {
+    "enabled": false,
+    "type": "none",
+    "percentOfFlour": 0,
+    "hydration": 0,
+    "yeastPercentInPreferment": 0
+  },
+
+  "poolish": {
+    "enabled": true,
+    "type": "poolish",
+    "percentOfFlour": 30,
+    "hydration": 100,
+    "yeastPercentInPreferment": 0.2
+  },
+
+  "levain": {
+    "enabled": true,
+    "type": "levain",
+    "percentOfFlour": 20,
+    "hydration": 75,
+    "yeastPercentInPreferment": 0
+  },
+
+  "biga": {
+    "enabled": true,
+    "type": "biga",
+    "percentOfFlour": 40,
+    "hydration": 50,
+    "yeastPercentInPreferment": 0.1
+  }
+}

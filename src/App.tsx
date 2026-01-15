@@ -9,14 +9,14 @@ import { loadProfile } from "./logic/profileLoader";
 
 function App() {
   const {
-    region,
     climate,
     mixing,
     productionMode,
-    setRegion,
+    roomTemp,
     setClimate,
     setMixing,
-    setProductionMode
+    setProductionMode,
+    setRoomTemp,
   } = useAppContext();
 
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
@@ -27,15 +27,15 @@ function App() {
   // Когда пользователь выбирает профиль на StartScreen
   //
   const handleProfileSelect = (profileId: string) => {
-    const loaded = loadProfile(profileId, region, climate, mixing);
+    const loaded = loadProfile(profileId, climate, mixing);
 
     setSelectedProfile(profileId);
-    setProfileData(loaded);          // весь профиль
-    setRecipeData(loaded.defaults);  // дефолтные значения для RecipeInput
+    setProfileData(loaded);
+    setRecipeData(loaded.defaults);
   };
 
   //
-  // Когда пользователь нажимает "Назад" из RecipeOutput → возвращаемся к RecipeInput
+  // Когда пользователь нажимает "Назад" из RecipeOutput
   //
   const handleBackToInput = () => {
     setRecipeData(profileData?.defaults || null);
@@ -51,19 +51,25 @@ function App() {
   };
 
   //
-  // Когда пользователь нажимает "Рассчитать рецепт" в RecipeInput
+  // Когда пользователь нажимает "Рассчитать рецепт"
   //
   const handleCalculate = (data: any) => {
     setRecipeData(data);
   };
 
   //
-  // 1) Если есть рассчитанные данные → показываем RecipeOutput
+  // 1) Если есть рассчитанные данные → RecipeOutput
   //
-  if (selectedProfile && recipeData && profileData && recipeData !== profileData.defaults) {
+  if (
+    selectedProfile &&
+    recipeData &&
+    profileData &&
+    recipeData !== profileData.defaults
+  ) {
     return (
       <RecipeOutput
         profileId={selectedProfile}
+        profile={profileData}
         data={recipeData}
         onBack={handleBackToInput}
         onRestart={handleRestart}
@@ -72,7 +78,7 @@ function App() {
   }
 
   //
-  // 2) Если выбран профиль → показываем RecipeInput
+  // 2) Если выбран профиль → RecipeInput
   //
   if (selectedProfile && profileData && recipeData) {
     return (
@@ -87,18 +93,18 @@ function App() {
   }
 
   //
-  // 3) Иначе → стартовый экран
+  // 3) Стартовый экран
   //
   return (
     <StartScreen
-      region={region}
       climate={climate}
       mixing={mixing}
       productionMode={productionMode}
-      onRegionChange={setRegion}
+      roomTemp={roomTemp}
       onClimateChange={setClimate}
       onMixingChange={setMixing}
       onProductionModeChange={setProductionMode}
+      onRoomTempChange={setRoomTemp}
       onProfileSelect={handleProfileSelect}
       onCustomDough={() => handleProfileSelect("custom")}
     />

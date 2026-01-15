@@ -1,7 +1,7 @@
 import pizza from "../profiles/pizza.json";
-import type { Region, Climate, MixingMethod } from "../context/AppContext";
+import type { Climate, MixingMethod } from "../context/AppContext";
 
-export type Profile = typeof pizza; // временно, пока один профиль
+export type Profile = typeof pizza;
 
 const profiles: Record<string, Profile> = {
   pizza
@@ -9,14 +9,12 @@ const profiles: Record<string, Profile> = {
 
 export function loadProfile(
   profileId: string,
-  region: Region,
   climate: Climate,
   mixing: MixingMethod
 ) {
   const base = profiles[profileId];
   if (!base) throw new Error(`Профиль ${profileId} не найден`);
 
-  // Клонируем, чтобы не портить оригинал
   const profile = JSON.parse(JSON.stringify(base)) as Profile;
 
   //
@@ -29,20 +27,7 @@ export function loadProfile(
   }
 
   //
-  // 2. Поправки по региону
-  //
-  const regionAdj = profile.regionAdjustments[region];
-  if (regionAdj) {
-    if (regionAdj.hydrationDelta) {
-      profile.defaults.hydration += regionAdj.hydrationDelta;
-    }
-    if (regionAdj.saltPercentDelta) {
-      profile.defaults.salt += regionAdj.saltPercentDelta;
-    }
-  }
-
-  //
-  // 3. Поправки по типу замеса
+  // 2. Поправки по типу замеса
   //
   const mixingAdj = profile.mixingAdjustments[mixing];
   if (mixingAdj) {
@@ -55,7 +40,7 @@ export function loadProfile(
   }
 
   //
-  // 4. Ограничиваем значения по лимитам
+  // 3. Ограничиваем значения по лимитам
   //
   const clamp = (value: number, min: number, max: number) =>
     Math.min(Math.max(value, min), max);

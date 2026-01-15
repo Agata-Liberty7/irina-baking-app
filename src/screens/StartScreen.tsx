@@ -1,32 +1,34 @@
 import React from "react";
+import NumberInput from "../components/NumberInput";
 
 export type ProductionMode = "home" | "pro";
-export type Region = "spain" | "russia" | "italy" | "france" | "germany" | "usa";
 export type Climate = "dry" | "moderate" | "humid";
 export type MixingMethod = "manual" | "planetary" | "spiral";
 
 type StartScreenProps = {
-  region: Region;
   climate: Climate;
   mixing: MixingMethod;
   productionMode: ProductionMode;
-  onRegionChange: (value: Region) => void;
+  roomTemp: number;
+
   onClimateChange: (value: Climate) => void;
   onMixingChange: (value: MixingMethod) => void;
   onProductionModeChange: (value: ProductionMode) => void;
+  onRoomTempChange: (value: number) => void;
+
   onProfileSelect: (profileId: string) => void;
   onCustomDough: () => void;
 };
 
 const StartScreen: React.FC<StartScreenProps> = ({
-  region,
   climate,
   mixing,
   productionMode,
-  onRegionChange,
+  roomTemp,
   onClimateChange,
   onMixingChange,
   onProductionModeChange,
+  onRoomTempChange,
   onProfileSelect,
   onCustomDough,
 }) => {
@@ -57,15 +59,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
     { id: "sponge", label: "Sponge", category: "nodough" },
   ];
 
-  const regions = [
-    { value: "spain", label: "Испания" },
-    { value: "russia", label: "Россия" },
-    { value: "italy", label: "Италия" },
-    { value: "france", label: "Франция" },
-    { value: "germany", label: "Германия" },
-    { value: "usa", label: "США" },
-  ];
-
   const climates = [
     { value: "dry", label: "Сухой" },
     { value: "moderate", label: "Умеренный" },
@@ -93,18 +86,11 @@ const StartScreen: React.FC<StartScreenProps> = ({
           }}
         >
           <div>
-            <label>Регион</label>
-            <select
-              value={region}
-              onChange={(e) => onRegionChange(e.target.value as Region)}
-              style={{ width: "100%", padding: "8px", marginTop: "4px" }}
-            >
-              {regions.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+            <NumberInput
+              label="Температура помещения (°C)"
+              value={roomTemp}
+              onChange={onRoomTempChange}
+            />
           </div>
 
           <div>

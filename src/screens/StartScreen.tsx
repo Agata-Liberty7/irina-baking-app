@@ -11,10 +11,16 @@ type StartScreenProps = {
   productionMode: ProductionMode;
   roomTemp: number;
 
+  warmFermentationHours: number;
+  coldFermentationHours: number;
+
   onClimateChange: (value: Climate) => void;
   onMixingChange: (value: MixingMethod) => void;
   onProductionModeChange: (value: ProductionMode) => void;
   onRoomTempChange: (value: number) => void;
+
+  onWarmFermentationChange: (value: number) => void;
+  onColdFermentationChange: (value: number) => void;
 
   onProfileSelect: (profileId: string) => void;
   onCustomDough: () => void;
@@ -25,10 +31,14 @@ const StartScreen: React.FC<StartScreenProps> = ({
   mixing,
   productionMode,
   roomTemp,
+  warmFermentationHours,
+  coldFermentationHours,
   onClimateChange,
   onMixingChange,
   onProductionModeChange,
   onRoomTempChange,
+  onWarmFermentationChange,
+  onColdFermentationChange,
   onProfileSelect,
   onCustomDough,
 }) => {
@@ -85,13 +95,23 @@ const StartScreen: React.FC<StartScreenProps> = ({
             gap: "16px",
           }}
         >
-          <div>
-            <NumberInput
-              label="Температура помещения (°C)"
-              value={roomTemp}
-              onChange={onRoomTempChange}
-            />
-          </div>
+          <NumberInput
+            label="Температура помещения (°C)"
+            value={roomTemp}
+            onChange={onRoomTempChange}
+          />
+
+          <NumberInput
+            label="Тёплая ферментация (часы)"
+            value={warmFermentationHours}
+            onChange={onWarmFermentationChange}
+          />
+
+          <NumberInput
+            label="Холодная ферментация (часы)"
+            value={coldFermentationHours}
+            onChange={onColdFermentationChange}
+          />
 
           <div>
             <label>Климат</label>

@@ -8,16 +8,19 @@ import RecipeOutput from "./screens/RecipeOutput";
 import { loadProfile } from "./logic/profileLoader";
 
 function App() {
-  const {
-    climate,
-    mixing,
-    productionMode,
-    roomTemp,
-    setClimate,
-    setMixing,
-    setProductionMode,
-    setRoomTemp,
-  } = useAppContext();
+const { 
+  climate, 
+  mixing, 
+  productionMode, 
+  roomTemp, 
+  warmFermentationHours, 
+  coldFermentationHours, 
+  setClimate, setMixing, 
+  setProductionMode, 
+  setRoomTemp, 
+  setWarmFermentationHours, 
+  setColdFermentationHours, 
+} = useAppContext();
 
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any | null>(null);
@@ -96,18 +99,22 @@ function App() {
   // 3) Стартовый экран
   //
   return (
-    <StartScreen
-      climate={climate}
-      mixing={mixing}
-      productionMode={productionMode}
-      roomTemp={roomTemp}
-      onClimateChange={setClimate}
-      onMixingChange={setMixing}
-      onProductionModeChange={setProductionMode}
-      onRoomTempChange={setRoomTemp}
-      onProfileSelect={handleProfileSelect}
-      onCustomDough={() => handleProfileSelect("custom")}
-    />
+<StartScreen 
+  climate={climate} 
+  mixing={mixing} 
+  productionMode={productionMode} 
+  roomTemp={roomTemp} 
+  warmFermentationHours={warmFermentationHours} 
+  coldFermentationHours={coldFermentationHours} 
+  onClimateChange={setClimate} 
+  onMixingChange={setMixing} 
+  onProductionModeChange={setProductionMode} 
+  onRoomTempChange={setRoomTemp} 
+  onWarmFermentationChange={setWarmFermentationHours}
+  onColdFermentationChange={setColdFermentationHours} 
+  onProfileSelect={handleProfileSelect} 
+  onCustomDough={() => handleProfileSelect("custom")}
+/>
   );
 }
 

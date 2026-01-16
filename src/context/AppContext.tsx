@@ -17,6 +17,12 @@ type AppContextType = {
 
   roomTemp: number;
   setRoomTemp: (value: number) => void;
+
+  warmFermentationHours: number;
+  setWarmFermentationHours: (value: number) => void;
+
+  coldFermentationHours: number;
+  setColdFermentationHours: (value: number) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -34,8 +40,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [mixing, setMixing] = useState<MixingMethod>("planetary");
   const [productionMode, setProductionMode] = useState<ProductionMode>("home");
 
-  // Новое: температура помещения
   const [roomTemp, setRoomTemp] = useState<number>(24);
+
+  // Новые параметры
+  const [warmFermentationHours, setWarmFermentationHours] = useState<number>(1);
+  const [coldFermentationHours, setColdFermentationHours] = useState<number>(0);
 
   return (
     <AppContext.Provider
@@ -48,6 +57,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setProductionMode,
         roomTemp,
         setRoomTemp,
+        warmFermentationHours,
+        setWarmFermentationHours,
+        coldFermentationHours,
+        setColdFermentationHours,
       }}
     >
       {children}

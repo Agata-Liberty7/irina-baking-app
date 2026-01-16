@@ -6,15 +6,23 @@ export type YeastInput = {
   climate: string;
   productionMode: string;
   roomTemp: number;
+
+  warmFermentationHours: number;
+  coldFermentationHours: number;
 };
 
-export type YeastResult = {
-  yeast: number;
-};
-
-export function calculateYeast(input: YeastInput): YeastResult {
-  const { flour, sugar, fat, profile, climate, productionMode, roomTemp } =
-    input;
+export function calculateYeast(input: YeastInput) {
+  const {
+    flour,
+    sugar,
+    fat,
+    profile,
+    climate,
+    productionMode,
+    roomTemp,
+    warmFermentationHours,
+    coldFermentationHours,
+  } = input;
 
   let yeastPct = profile.baseYeast ?? 1.5;
 
@@ -28,14 +36,34 @@ export function calculateYeast(input: YeastInput): YeastResult {
   if (roomTemp > 26) yeastPct -= 0.3;
   if (roomTemp > 28) yeastPct -= 0.6;
 
-  // Жиры/сахар
+  // Жиры и сахар
   yeastPct += sugar * 0.02;
   yeastPct += fat * 0.03;
 
-  // Режим
+  // Производственный режим
   if (productionMode === "pro") yeastPct -= 0.2;
+
+  // -----------------------------
+  // СМЕШАННАЯ ФЕРМЕНТАЦИЯ
+  // -----------------------------
+
+  const coldFactor = profile.isEnriched ? 0.33 : 0.25;
+
+  const effectiveHours =
+    warmFermentationHours + coldFermentationHours * coldFactor;
+
+  const baseTime = profile.baseFermentationHours ?? 3;
+  const ratio = effectiveHours / baseTime;
+
+  if (ratio > 1) {
+    const enrichedFactor = profile.isEnriched ? 0.55 : 0.70;
+    yeastPct *= 1 / (1 + (ratio - 1) * enrichedFactor);
+  } else if (ratio < 1) {
+    yeastPct *= 1 + (1 - ratio) * 0.5;
+  }
 
   const yeast = Math.max(0, Math.round((flour * yeastPct) / 100));
 
   return { yeast };
 }
+        

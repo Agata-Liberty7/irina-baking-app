@@ -1,16 +1,23 @@
 import React from "react";
 import NumberInput from "../components/NumberInput";
+import { type PrefermentType } from "../logic/preferment";
 
 type RecipeInputProps = {
   profileId: string;
   profile: any;
   initialValues: {
     flour: number;
-    hydration: number; // временно оставляем, чтобы не ломать RecipeOutput
+    hydration: number;
     salt: number;
     sugar: number;
     fat: number;
     eggs: number;
+
+    // новое:
+    prefermentType: PrefermentType;
+    prefermentFlourPct: number;
+    prefermentHydrationPct: number;
+    prefermentYeastPct: number;
   };
   onBack: () => void;
   onCalculate: (data: {
@@ -20,8 +27,15 @@ type RecipeInputProps = {
     sugar: number;
     fat: number;
     eggs: number;
+
+    // новое:
+    prefermentType: PrefermentType;
+    prefermentFlourPct: number;
+    prefermentHydrationPct: number;
+    prefermentYeastPct: number;
   }) => void;
 };
+
 
 const RecipeInput: React.FC<RecipeInputProps> = ({
   profileId,
@@ -45,6 +59,28 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
   // hydration пока берём из initialValues, чтобы RecipeOutput не ломался
   const [hydration] = React.useState(initialValues.hydration);
 
+  // -----------------------------
+  // ПРЕДФЕРМЕНТ (новые поля)
+  // -----------------------------
+  const [prefermentType, setPrefermentType] = React.useState(
+    profile.preferment?.type ?? "none"
+  );
+
+  const [prefermentFlourPct, setPrefermentFlourPct] = React.useState(
+    profile.preferment?.flourPct ?? 0
+  );
+
+  const [prefermentHydrationPct, setPrefermentHydrationPct] = React.useState(
+    profile.preferment?.hydrationPct ?? 100
+  );
+
+  const [prefermentYeastPct, setPrefermentYeastPct] = React.useState(
+    profile.preferment?.yeastPct ?? 100
+  );
+
+  // -----------------------------
+  // SUBMIT
+  // -----------------------------
   const handleSubmit = () => {
     let finalFlour = flour;
 
@@ -69,6 +105,12 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       sugar,
       fat,
       eggs,
+
+      // новое:
+      prefermentType,
+      prefermentFlourPct,
+      prefermentHydrationPct,
+      prefermentYeastPct,
     });
   };
 
@@ -143,6 +185,54 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
           value={eggs}
           onChange={setEggs}
         />
+
+        {/* -------------------------------- */}
+        {/* ПРЕДФЕРМЕНТ — НОВЫЙ БЛОК         */}
+        {/* -------------------------------- */}
+        <div style={{ marginTop: "24px" }}>
+          <h2 style={{ marginBottom: "12px" }}>Предфермент</h2>
+
+          {/* Тип предфермента */}
+          <label style={{ display: "block", marginBottom: "8px" }}>
+            Тип:
+            <select
+              value={prefermentType}
+              onChange={(e) => setPrefermentType(e.target.value)}
+              style={{ marginLeft: "8px" }}
+            >
+              <option value="none">Без предфермента</option>
+              <option value="poolish">Пулеш</option>
+              <option value="biga">Бига</option>
+              <option value="sponge">Спонж</option>
+              <option value="opara">Опара</option>
+              <option value="tangzhong">Тангзонг</option>
+              <option value="yudane">Юдане</option>
+            </select>
+          </label>
+
+          {/* Параметры предфермента */}
+          {prefermentType !== "none" && (
+            <div style={{ display: "grid", gap: "12px", marginTop: "12px" }}>
+              <NumberInput
+                label="Мука в предферменте (% от общей муки)"
+                value={prefermentFlourPct}
+                onChange={setPrefermentFlourPct}
+              />
+
+              <NumberInput
+                label="Гидратация предфермента (%)"
+                value={prefermentHydrationPct}
+                onChange={setPrefermentHydrationPct}
+              />
+
+              <NumberInput
+                label="Дрожжи в предферменте (% от общей нормы)"
+                value={prefermentYeastPct}
+                onChange={setPrefermentYeastPct}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <button

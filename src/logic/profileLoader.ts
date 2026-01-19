@@ -1,10 +1,42 @@
 import pizza from "../profiles/pizza.json";
+import bread from "../profiles/bread.json";
+import baguette from "../profiles/baguette.json";
+import focaccia from "../profiles/focaccia.json";
+import bagel from "../profiles/bagel.json";
+import pita from "../profiles/pita.json";
+import brioche from "../profiles/brioche.json";
+import cinnabon from "../profiles/cinnabon.json";
+import donuts from "../profiles/donuts.json";
+import enriched from "../profiles/enriched.json";
+import ensaimada from "../profiles/ensaimada.json";
+import belyashi from "../profiles/belyashi.json";
+import chebureki from "../profiles/chebureki.json";
+import empanada from "../profiles/empanada.json";
+import baked_pirozhki from "../profiles/baked_pirozhki.json";
+import sourdough from "../profiles/sourdough.json"; 
+
 import type { Climate, MixingMethod } from "../context/AppContext";
 
 export type Profile = typeof pizza;
 
 const profiles: Record<string, Profile> = {
-  pizza
+  pizza: pizza as Profile,
+  bread: bread as Profile,
+  baguette: baguette as Profile,
+  focaccia: focaccia as Profile,
+  bagel: bagel as Profile,
+  pita: pita as Profile,
+  brioche: brioche as Profile,
+  cinnabon: cinnabon as Profile,
+  donuts: donuts as Profile,
+  enriched: enriched as Profile,
+  ensaimada: ensaimada as Profile,
+  belyashi: belyashi as Profile,
+  chebureki: chebureki as Profile,
+  empanada: empanada as Profile,
+  baked_pirozhki: baked_pirozhki as Profile,
+  sourdough: sourdough as Profile,
+
 };
 
 export function loadProfile(

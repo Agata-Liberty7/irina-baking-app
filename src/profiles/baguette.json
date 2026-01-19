@@ -1,0 +1,137 @@
+{
+  "id": "baguette",
+  "name": "Багет",
+  "category": "bread",
+
+  "defaults": {
+    "flour": 1000,
+    "hydration": 70,
+    "salt": 2,
+    "sugar": 0,
+    "fat": 0,
+    "eggs": 0,
+    "yeast": {
+      "type": "instant",
+      "percent": 0.5
+    }
+  },
+
+  "limits": {
+    "hydration": { "min": 65, "max": 78 },
+    "salt": { "min": 1.8, "max": 2.3 },
+    "sugar": { "min": 0, "max": 3 },
+    "fat": { "min": 0, "max": 3 },
+    "yeastPercent": { "min": 0.1, "max": 1 }
+  },
+
+  "process": {
+    "mixingIntensity": "medium",
+    "mixingTime": {
+      "manual": { "min": 8, "max": 12 },
+      "planetary": { "min": 5, "max": 7 },
+      "spiral": { "min": 3, "max": 5 }
+    },
+    "glutenDevelopment": "medium",
+    "bulkFermentationTarget": "x2.0",
+    "finalProofTarget": "пальцевый тест"
+  },
+
+  "climateAdjustments": {
+    "dry": {
+      "hydrationDelta": 2,
+      "yeastDeltaPercent": 0.05,
+      "comment": "Сухой климат: мука впитывает больше воды, тесто быстрее сохнет."
+    },
+    "moderate": {
+      "hydrationDelta": 0,
+      "yeastDeltaPercent": 0,
+      "comment": "Умеренный климат: используем базовые параметры."
+    },
+    "humid": {
+      "hydrationDelta": -2,
+      "yeastDeltaPercent": -0.05,
+      "comment": "Влажный климат: тесто липче, уменьшаем воду."
+    }
+  },
+
+  "mixingAdjustments": {
+    "manual": {
+      "hydrationDelta": 0,
+      "yeastPercentDelta": 0,
+      "comment": "Ручной замес: классический режим."
+    },
+    "planetary": {
+      "hydrationDelta": 0,
+      "yeastPercentDelta": 0,
+      "comment": "Планетарный миксер: стандартная интенсивность."
+    },
+    "spiral": {
+      "hydrationDelta": 2,
+      "yeastPercentDelta": -0.05,
+      "comment": "Спиральный: лучше развивает клейковину, можно повысить воду."
+    }
+  },
+
+  "preferment": {
+    "enabled": true,
+    "type": "poolish",
+    "percentOfFlour": 30,
+    "hydration": 100,
+    "yeastPercentInPreferment": 0.1,
+    "comment": "Пулеш улучшает аромат и структуру багета."
+  },
+
+  "schedule": {
+    "bulk": {
+      "totalHours": 2.5,
+      "temperature": 24,
+      "steps": [
+        {
+          "timeFromStartMinutes": 0,
+          "action": "Автолиз",
+          "comment": "Мука + вода, 20–30 минут."
+        },
+        {
+          "timeFromStartMinutes": 30,
+          "action": "Добавление соли",
+          "comment": "Замешиваем до средней клейковины."
+        },
+        {
+          "timeFromStartMinutes": 60,
+          "action": "Складка",
+          "comment": "Одна складка для укрепления структуры."
+        }
+      ]
+    },
+
+    "finalProof": {
+      "totalHours": 0.75,
+      "temperature": 24,
+      "comment": "Ориентироваться по тесту: пальцевый тест."
+    },
+
+    "coldRetard": {
+      "enabled": true,
+      "hours": 12,
+      "temperature": 4,
+      "comment": "Холодная ферментация даёт классический аромат багета."
+    }
+  },
+
+  "bake": {
+    "temperature": 240,
+    "timeMinutes": 25
+  },
+
+  "uiHints": {
+    "flourLabel": "Мука (базовая порция)",
+    "hydrationLabel": "Гидратация (вода % к муке)",
+    "notesForBaker": [
+      "Температура теста после замеса: 24–25°C.",
+      "Используйте пар первые 10 минут выпечки.",
+      "Не пересыпайте мукой при формовке.",
+      "Делайте продольные надрезы под углом 30°.",
+      "Не передерживайте на расстойке — багет потеряет подпружинивание."
+    ]
+  }
+}

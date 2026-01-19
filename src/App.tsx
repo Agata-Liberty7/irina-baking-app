@@ -6,6 +6,8 @@ import RecipeInput from "./screens/RecipeInput";
 import RecipeOutput from "./screens/RecipeOutput";
 
 import { loadProfile } from "./logic/profileLoader";
+import TechCard from "./screens/TechCard";
+
 
 function App() {
 const { 
@@ -25,6 +27,9 @@ const {
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any | null>(null);
   const [recipeData, setRecipeData] = useState<any | null>(null);
+  const [showTechCard, setShowTechCard] = useState(false);
+  const [techData, setTechData] = useState<any | null>(null);
+
 
   //
   // Когда пользователь выбирает профиль на StartScreen
@@ -52,6 +57,14 @@ const {
     setProfileData(null);
     setRecipeData(null);
   };
+  const handleShowTechCard = (recipe: any) => {
+    setTechData(recipe);
+    setShowTechCard(true);
+  };
+  const handleBackFromTechCard = () => {
+    setShowTechCard(false);
+  };
+
 
   //
   // Когда пользователь нажимает "Рассчитать рецепт"
@@ -59,6 +72,17 @@ const {
   const handleCalculate = (data: any) => {
     setRecipeData(data);
   };
+
+  // 0) Если открыт экран технологической карты
+  if (showTechCard && techData && profileData) {
+    return (
+      <TechCard
+        profile={profileData}
+        recipe={techData}
+        onBack={handleBackFromTechCard}
+      />
+    );
+  }
 
   //
   // 1) Если есть рассчитанные данные → RecipeOutput
@@ -69,17 +93,18 @@ const {
     profileData &&
     recipeData !== profileData.defaults
   ) {
-    return (
-      <RecipeOutput
-        profileId={selectedProfile}
-        profile={profileData}
-        data={recipeData}
-        onBack={handleBackToInput}
-        onRestart={handleRestart}
-      />
-    );
-  }
+  return (
+    <RecipeOutput
+      profileId={selectedProfile}
+      profile={profileData}
+      data={recipeData}
+      onBack={handleBackToInput}
+      onRestart={handleRestart}
+      onShowTechCard={handleShowTechCard}
+    />
+  );
 
+  }
   //
   // 2) Если выбран профиль → RecipeInput
   //

@@ -1,0 +1,117 @@
+{
+  "id": "choux",
+  "name": "Заварное тесто",
+  "category": "pastry",
+
+  "defaults": {
+    "flour": 1000,
+    "hydration": 0,
+    "salt": 1.5,
+    "sugar": 5,
+    "fat": 50,
+    "eggs": 80,
+    "yeast": {
+      "type": "none",
+      "percent": 0
+    }
+  },
+
+  "limits": {
+    "hydration": { "min": 0, "max": 10 },
+    "salt": { "min": 0, "max": 2.5 },
+    "sugar": { "min": 0, "max": 40 },
+    "fat": { "min": 20, "max": 80 },
+    "yeastPercent": { "min": 0, "max": 0 }
+  },
+
+  "process": {
+    "mixingIntensity": "medium",
+    "mixingTime": {
+      "manual": { "min": 5, "max": 8 },
+      "planetary": { "min": 3, "max": 6 },
+      "spiral": { "min": 0, "max": 0 }
+    },
+    "glutenDevelopment": "low",
+    "bulkFermentationTarget": "none",
+    "finalProofTarget": "none"
+  },
+
+  "climateAdjustments": {
+    "dry": {
+      "hydrationDelta": 0,
+      "yeastDeltaPercent": 0,
+      "comment": ""
+    },
+    "moderate": {
+      "hydrationDelta": 0,
+      "yeastDeltaPercent": 0,
+      "comment": ""
+    },
+    "humid": {
+      "hydrationDelta": 0,
+      "yeastDeltaPercent": 0,
+      "comment": ""
+    }
+  },
+
+  "mixingAdjustments": {
+    "manual": {
+      "hydrationDelta": 0,
+      "yeastPercentDelta": 0,
+      "comment": ""
+    },
+    "planetary": {
+      "hydrationDelta": 0,
+      "yeastPercentDelta": 0,
+      "comment": ""
+    },
+    "spiral": {
+      "hydrationDelta": 0,
+      "yeastPercentDelta": 0,
+      "comment": ""
+    }
+  },
+
+  "preferment": {
+    "enabled": false,
+    "type": "none",
+    "percentOfFlour": 0,
+    "hydration": 0,
+    "yeastPercentInPreferment": 0,
+    "comment": ""
+  },
+
+  "schedule": {
+    "bulk": {
+      "totalHours": 0,
+      "temperature": 24,
+      "steps": []
+    },
+    "finalProof": {
+      "totalHours": 0,
+      "temperature": 24,
+      "comment": ""
+    },
+    "coldRetard": {
+      "enabled": false,
+      "hours": 0,
+      "temperature": 4,
+      "comment": ""
+    }
+  },
+
+  "bake": {
+    "temperature": 200,
+    "timeMinutes": 25
+  },
+
+  "uiHints": {
+    "flourLabel": "Мука",
+    "hydrationLabel": "Гидратация",
+    "notesForBaker": [
+      "Заваривание муки водой и жиром — ключевой этап.",
+      "Яйца добавляются по консистенции, не по формуле.",
+      "Не открывать духовку в первые 15 минут выпечки."
+    ]
+  }
+}

@@ -12,6 +12,13 @@ export type YeastInput = {
 };
 
 export function calculateYeast(input: YeastInput) {
+  const baseYeast = input.profile.defaults.yeast;
+
+  // 🔥 если профиль явно разрешает 0 — не трогаем
+  if (baseYeast && baseYeast.allowZero && baseYeast.percent === 0) {
+    return { yeast: 0 };
+  }
+
   const {
     flour,
     sugar,
@@ -24,7 +31,16 @@ export function calculateYeast(input: YeastInput) {
     coldFermentationHours,
   } = input;
 
-  let yeastPct = profile.baseYeast ?? 1.5;
+  // 🔥 корректная инициализация дрожжей
+  let yeastPct: number;
+
+  if (baseYeast?.allowZero && baseYeast.percent === 0) {
+    yeastPct = 0;
+  } else if (typeof baseYeast?.percent === "number") {
+    yeastPct = baseYeast.percent;
+  } else {
+    yeastPct = profile.baseYeast ?? 1.5;
+  }
 
   // Влажность
   if (climate === "dry") yeastPct += 0.2;
@@ -43,10 +59,7 @@ export function calculateYeast(input: YeastInput) {
   // Производственный режим
   if (productionMode === "pro") yeastPct -= 0.2;
 
-  // -----------------------------
-  // СМЕШАННАЯ ФЕРМЕНТАЦИЯ
-  // -----------------------------
-
+  // Смешанная ферментация
   const coldFactor = profile.isEnriched ? 0.33 : 0.25;
 
   const effectiveHours =
@@ -66,4 +79,5 @@ export function calculateYeast(input: YeastInput) {
 
   return { yeast };
 }
+
         

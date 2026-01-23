@@ -24,6 +24,9 @@ type StartScreenProps = {
 
   onProfileSelect: (profileId: string) => void;
   onCustomDough: () => void;
+  onEditCustom: (profileId: string) => void;
+  onDeleteCustom: (profileId: string) => void;
+  customProfiles: any[];
 };
 
 const StartScreen: React.FC<StartScreenProps> = ({
@@ -41,7 +44,13 @@ const StartScreen: React.FC<StartScreenProps> = ({
   onColdFermentationChange,
   onProfileSelect,
   onCustomDough,
+  onEditCustom,
+  onDeleteCustom,
+  customProfiles,
 }) => {
+  //
+  // Стандартные профили
+  //
   const profiles = [
     { id: "bread", label: "Хлеб", category: "bread" },
     { id: "baguette", label: "Багет", category: "bread" },
@@ -51,7 +60,7 @@ const StartScreen: React.FC<StartScreenProps> = ({
     { id: "bagel", label: "Бейгл", category: "bread" },
     { id: "pita", label: "Пита", category: "bread" },
 
-    { id: "cinnabon", label: "Cinnabon", category: "enriched" },
+    { id: "cinnabon", label: "Синабон", category: "enriched" },
     { id: "enriched", label: "Сдоба", category: "enriched" },
     { id: "brioche", label: "Бриошь", category: "enriched" },
     { id: "donuts", label: "Донатс", category: "enriched" },
@@ -62,13 +71,20 @@ const StartScreen: React.FC<StartScreenProps> = ({
     { id: "chebureki", label: "Чебуреки", category: "filled" },
     { id: "empanada", label: "Эмпанада", category: "filled" },
 
-    { id: "sourdough", label: "Закваска", category: "sourdough" },
+    { id: "sourdough", label: "Хлеб на закваске", category: "sourdough" },
 
-    { id: "choux", label: "Choux", category: "nodough" },
-    { id: "shortcrust", label: "Shortcrust", category: "nodough" },
-    { id: "sponge", label: "Sponge", category: "nodough" },
+    { id: "choux", label: "Заварное тесто", category: "nodough" },
+    { id: "shortcrust", label: "Песочное тесто", category: "nodough" },
+    { id: "sponge", label: "Бисквит", category: "nodough" },
   ];
 
+  //
+  // Кастомные профили
+  //
+
+  //
+  // UI списков
+  //
   const climates = [
     { value: "dry", label: "Сухой" },
     { value: "moderate", label: "Умеренный" },
@@ -83,6 +99,7 @@ const StartScreen: React.FC<StartScreenProps> = ({
 
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px" }}>
+      {/* УСЛОВИЯ ПРОИЗВОДСТВА */}
       <section style={{ marginBottom: "32px" }}>
         <h1 style={{ fontSize: "24px", marginBottom: "16px" }}>
           Условия производства
@@ -188,6 +205,7 @@ const StartScreen: React.FC<StartScreenProps> = ({
         </div>
       </section>
 
+      {/* СТАНДАРТНЫЕ ПРОФИЛИ */}
       <section>
         <h2 style={{ fontSize: "22px", marginBottom: "16px" }}>
           Выберите тип теста
@@ -240,6 +258,87 @@ const StartScreen: React.FC<StartScreenProps> = ({
           </button>
         </div>
       </section>
+
+      {/* МОИ ПРОФИЛИ */}
+      {customProfiles.length > 0 && (
+        <section style={{ marginTop: "40px" }}>
+          <h2 style={{ fontSize: "22px", marginBottom: "16px" }}>
+            Мои профили
+          </h2>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {customProfiles.map((p) => (
+              <div
+                key={p.id}
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                  padding: "10px 14px",
+                  background: "#fff",
+                  minWidth: "180px",
+                  position: "relative",
+                }}
+              >
+                <div
+                  style={{ fontWeight: 500, cursor: "pointer" }}
+                  onClick={() => onProfileSelect(p.id)}
+                >
+                  {p.name}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#777",
+                    marginTop: "2px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  custom
+                </div>
+
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "6px",
+                    right: "6px",
+                    display: "flex",
+                    gap: "6px",
+                  }}
+                >
+                  <button
+                    type="button"
+                    title="Редактировать"
+                    onClick={() => onEditCustom(p.id)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                  >
+                    ✏️
+                  </button>
+
+                  <button
+                    type="button"
+                    title="Удалить"
+                    onClick={() => onDeleteCustom(p.id)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

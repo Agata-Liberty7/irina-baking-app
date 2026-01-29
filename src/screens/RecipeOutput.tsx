@@ -29,6 +29,7 @@ type RecipeOutputProps = {
   onBack: () => void;
   onRestart: () => void;
   onShowTechCard: (recipe: any) => void;
+  onSaveAsCustom: (recipe: any) => void;
 };
 
 const RecipeOutput: React.FC<RecipeOutputProps> = ({
@@ -38,6 +39,7 @@ const RecipeOutput: React.FC<RecipeOutputProps> = ({
   onBack,
   onRestart,
   onShowTechCard,
+  onSaveAsCustom,
 }) => {
   const {
     climate,
@@ -201,6 +203,20 @@ const RecipeOutput: React.FC<RecipeOutputProps> = ({
       <div style={{ marginTop: "32px", display: "flex", gap: "12px" }}>
         <button onClick={onBack}>← Назад</button>
         <button onClick={onRestart}>На стартовый экран</button>
+        <button
+          onClick={() =>
+            onSaveAsCustom({
+              preferment,
+              finalDough,
+              effectivePrefermentHours,
+              fermentation,
+              total,
+            })
+          }
+        >
+          Сохранить в Мои рецепты
+        </button>
+
       <button
         onClick={() =>
           onShowTechCard({

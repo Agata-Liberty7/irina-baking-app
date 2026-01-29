@@ -23,10 +23,11 @@ type StartScreenProps = {
   onColdFermentationChange: (value: number) => void;
 
   onProfileSelect: (profileId: string) => void;
-  onCustomDough: () => void;
-  onEditCustom: (profileId: string) => void;
-  onDeleteCustom: (profileId: string) => void;
-  customProfiles: any[];
+
+  customRecipes: any[];
+  onOpenCustomRecipe: (id: string) => void;
+  onDeleteCustomRecipe: (id: string) => void;
+
 };
 
 const StartScreen: React.FC<StartScreenProps> = ({
@@ -43,10 +44,9 @@ const StartScreen: React.FC<StartScreenProps> = ({
   onWarmFermentationChange,
   onColdFermentationChange,
   onProfileSelect,
-  onCustomDough,
-  onEditCustom,
-  onDeleteCustom,
-  customProfiles,
+  customRecipes,
+  onOpenCustomRecipe,
+  onDeleteCustomRecipe,
 }) => {
   //
   // Стандартные профили
@@ -78,13 +78,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
     { id: "sponge", label: "Бисквит", category: "nodough" },
   ];
 
-  //
-  // Кастомные профили
-  //
-
-  //
-  // UI списков
-  //
   const climates = [
     { value: "dry", label: "Сухой" },
     { value: "moderate", label: "Умеренный" },
@@ -241,104 +234,67 @@ const StartScreen: React.FC<StartScreenProps> = ({
             </button>
           ))}
         </div>
-
-        <div style={{ marginTop: "24px" }}>
-          <button
-            type="button"
-            onClick={onCustomDough}
-            style={{
-              padding: "10px 16px",
-              borderRadius: "6px",
-              border: "1px dashed #666",
-              background: "transparent",
-              cursor: "pointer",
-            }}
-          >
-            ➕ Создать своё тесто
-          </button>
-        </div>
       </section>
 
-      {/* МОИ ПРОФИЛИ */}
-      {customProfiles.length > 0 && (
+      {/* МОИ РЕЦЕПТЫ */}
+      {customRecipes.length > 0 && (
         <section style={{ marginTop: "40px" }}>
           <h2 style={{ fontSize: "22px", marginBottom: "16px" }}>
-            Мои профили
+            Мои рецепты
           </h2>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-            {customProfiles.map((p) => (
+            {customRecipes.map((r) => (
               <div
-                key={p.id}
+                key={r.id}
                 style={{
                   border: "1px solid #ccc",
                   borderRadius: "6px",
                   padding: "10px 14px",
                   background: "#fff",
-                  minWidth: "180px",
+                  minWidth: "220px",
                   position: "relative",
                 }}
               >
                 <div
                   style={{ fontWeight: 500, cursor: "pointer" }}
-                  onClick={() => onProfileSelect(p.id)}
+                  onClick={() => onOpenCustomRecipe(r.id)}
                 >
-                  {p.name}
+                  {r.name}
                 </div>
 
                 <div
                   style={{
                     fontSize: "12px",
                     color: "#777",
-                    marginTop: "2px",
-                    textTransform: "uppercase",
+                    marginTop: "4px",
                   }}
                 >
-                  custom
+                  {new Date(r.timestamp).toLocaleString()}
                 </div>
 
-                <div
+                <button
+                  type="button"
+                  title="Удалить"
+                  onClick={() => onDeleteCustomRecipe(r.id)}
                   style={{
                     position: "absolute",
                     top: "6px",
                     right: "6px",
-                    display: "flex",
-                    gap: "6px",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "14px",
                   }}
                 >
-                  <button
-                    type="button"
-                    title="Редактировать"
-                    onClick={() => onEditCustom(p.id)}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    ✏️
-                  </button>
-
-                  <button
-                    type="button"
-                    title="Удалить"
-                    onClick={() => onDeleteCustom(p.id)}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    🗑️
-                  </button>
-                </div>
+                  🗑️
+                </button>
               </div>
             ))}
           </div>
         </section>
       )}
+
     </div>
   );
 };

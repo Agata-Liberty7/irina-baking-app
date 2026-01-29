@@ -18,8 +18,8 @@ import sourdough from "../profiles/sourdough.json";
 import sponge from "../profiles/sponge.json";
 import shortcrust from "../profiles/shortcrust.json";
 import choux from "../profiles/choux.json";
+import { defaultRecipe } from "./defaultRecipe";
 
-import type { Climate, MixingMethod } from "../context/AppContext";
 
 
 export type Profile = Omit<typeof bread, "defaults"> & {
@@ -94,7 +94,7 @@ export function loadProfile(
 
   // --- NEW: если профиль разрешает 0 дрожжей, не трогаем их ---
   if (profile.defaults.yeast?.allowZero && profile.defaults.yeast.percent === 0) {
-    return profile;
+    return { ...profile, defaults: { ...defaultRecipe, ...profile.defaults, }, };
   }
 
   // 3. Ограничиваем значения по лимитам
@@ -142,5 +142,5 @@ export function loadProfile(
 
 
 
-  return profile;
+    return { ...profile, defaults: { ...defaultRecipe, ...profile.defaults, }, };
 }

@@ -8,7 +8,40 @@ type Props = {
   onBack: () => void;
 };
 
-const CustomRecipeView: React.FC<Props> = ({ name, recipe, profile, conditions, onBack }) => {
+// Универсальная таблица
+const Table: React.FC<{ rows: { label: string; value: any }[] }> = ({ rows }) => (
+  <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "12px" }}>
+    <tbody>
+      {rows
+        .filter((r) => r.value !== null && r.value !== undefined && r.value !== 0)
+        .map((row, i) => (
+          <tr key={i}>
+            <td style={{ padding: "4px 0", width: "60%" }}>{row.label}</td>
+            <td style={{ padding: "4px 0", fontWeight: 600 }}>{row.value}</td>
+          </tr>
+        ))}
+    </tbody>
+  </table>
+);
+
+// Универсальная секция
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
+  title,
+  children,
+}) => (
+  <section style={{ marginBottom: "32px" }}>
+    <h2 style={{ marginBottom: "12px" }}>{title}</h2>
+    {children}
+  </section>
+);
+
+const CustomRecipeView: React.FC<Props> = ({
+  name,
+  recipe,
+  profile,
+  conditions,
+  onBack,
+}) => {
   if (!recipe) {
     return (
       <div style={{ padding: 24 }}>
@@ -27,66 +60,113 @@ const CustomRecipeView: React.FC<Props> = ({ name, recipe, profile, conditions, 
     total,
   } = recipe;
 
+  const totalPreferment =
+    (preferment?.flour || 0) +
+    (preferment?.water || 0) +
+    (preferment?.milk || 0) +
+    (preferment?.yeast || 0);
+
+  const totalFinal =
+    finalDough.flour +
+    finalDough.water +
+    finalDough.milk +
+    finalDough.salt +
+    finalDough.sugar +
+    finalDough.fat +
+    finalDough.eggs * 50 +
+    finalDough.yeast;
+
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px" }}>
       <h1 style={{ marginBottom: "24px" }}>{name}</h1>
 
+      {/* -------------------------------------------------- */}
       {/* УСЛОВИЯ ПРОИЗВОДСТВА */}
-      <section style={{ marginBottom: "32px" }}>
-        <h2>Условия производства</h2>
-        <div style={{ marginTop: "12px", display: "grid", gap: "6px" }}>
-          <div>Климат: <strong>{conditions.climate}</strong></div>
-          <div>Замес: <strong>{conditions.mixing}</strong></div>
-          <div>Режим: <strong>{conditions.productionMode}</strong></div>
-          <div>Температура помещения: <strong>{conditions.roomTemp}°C</strong></div>
-          <div>Тёплая ферментация: <strong>{conditions.warmFermentationHours} ч</strong></div>
-          <div>Холодная ферментация: <strong>{conditions.coldFermentationHours} ч</strong></div>
-        </div>
-      </section>
+      {/* -------------------------------------------------- */}
+      <Section title="Условия производства">
+        <Table
+          rows={[
+            { label: "Климат", value: conditions.climate },
+            { label: "Замес", value: conditions.mixing },
+            { label: "Режим", value: conditions.productionMode },
+            { label: "Температура помещения", value: `${conditions.roomTemp}°C` },
+            {
+              label: "Тёплая ферментация",
+              value: `${conditions.warmFermentationHours} ч`,
+            },
+            {
+              label: "Холодная ферментация",
+              value: `${conditions.coldFermentationHours} ч`,
+            },
+          ]}
+        />
+      </Section>
 
+      {/* -------------------------------------------------- */}
       {/* ПРЕДФЕРМЕНТ */}
+      {/* -------------------------------------------------- */}
       {preferment && preferment.flour > 0 && (
-        <section style={{ marginBottom: "32px" }}>
-          <h2>Предфермент ({preferment.type})</h2>
-          <div style={{ marginTop: "12px", display: "grid", gap: "6px" }}>
-            <div>Мука: <strong>{preferment.flour} г</strong></div>
-            <div>Вода: <strong>{preferment.water} г</strong></div>
-            <div>Дрожжи: <strong>{preferment.yeast} г</strong></div>
-            <div>Гидратация: <strong>{preferment.hydration}%</strong></div>
-            <div>Ферментация: <strong>{effectivePrefermentHours} ч</strong></div>
-          </div>
-        </section>
+        <Section title={`Предфермент (${preferment.type || "не указан"})`}>
+          <Table
+            rows={[
+              { label: "Мука", value: `${preferment.flour} г` },
+              { label: "Вода", value: `${preferment.water} г` },
+              { label: "Молоко", value: preferment.milk ? `${preferment.milk} г` : null },
+              { label: "Дрожжи", value: `${preferment.yeast} г` },
+              { label: "Гидратация", value: `${preferment.hydration}%` },
+              {
+                label: "Ферментация",
+                value: `${effectivePrefermentHours} ч`,
+              },
+            ]}
+          />
+        </Section>
       )}
 
+      {/* -------------------------------------------------- */}
       {/* ОСНОВНОЕ ТЕСТО */}
-      <section style={{ marginBottom: "32px" }}>
-        <h2>Основное тесто</h2>
-        <div style={{ marginTop: "12px", display: "grid", gap: "6px" }}>
-          <div>Мука: <strong>{finalDough.flour} г</strong></div>
-          <div>Вода: <strong>{finalDough.water} г</strong></div>
-          {finalDough.milk && finalDough.milk > 0 && (
-            <div>Молоко: <strong>{finalDough.milk} г</strong></div>
-          )}
-          <div>Соль: <strong>{finalDough.salt} г</strong></div>
-          <div>Сахар: <strong>{finalDough.sugar} г</strong></div>
-          <div>Жиры: <strong>{finalDough.fat} г</strong></div>
-          <div>Яйца: <strong>{finalDough.eggs} шт</strong></div>
-          <div>Дрожжи: <strong>{finalDough.yeast} г</strong></div>
-          <div>Гидратация: <strong>{finalDough.hydration}%</strong></div>
-        </div>
-      </section>
+      {/* -------------------------------------------------- */}
+      <Section title="Основное тесто">
+        <Table
+          rows={[
+            { label: "Мука", value: `${finalDough.flour} г` },
+            { label: "Вода", value: `${finalDough.water} г` },
+            { label: "Молоко", value: finalDough.milk ? `${finalDough.milk} г` : null },
+            { label: "Соль", value: `${finalDough.salt} г` },
+            { label: "Сахар", value: `${finalDough.sugar} г` },
+            { label: "Жиры", value: `${finalDough.fat} г` },
+            { label: "Яйца", value: `${finalDough.eggs} шт` },
+            { label: "Дрожжи", value: `${finalDough.yeast} г` },
+            { label: "Гидратация", value: `${finalDough.hydration}%` },
+          ]}
+        />
+      </Section>
 
+      {/* -------------------------------------------------- */}
       {/* ФЕРМЕНТАЦИЯ */}
-      <section style={{ marginBottom: "32px" }}>
-        <h2>Ферментация</h2>
-        <div style={{ marginTop: "12px", display: "grid", gap: "6px" }}>
-          <div>Общая ферментация: <strong>{fermentation.totalHours} ч</strong></div>
-          <div>Тёплая: <strong>{fermentation.warmHours} ч</strong></div>
-          <div>Холодная: <strong>{fermentation.coldHours} ч</strong></div>
-        </div>
-      </section>
+      {/* -------------------------------------------------- */}
+      <Section title="Ферментация">
+        <Table
+          rows={[
+            { label: "Общая ферментация", value: `${fermentation.totalHours} ч` },
+            { label: "Тёплая", value: `${fermentation.warmHours} ч` },
+            { label: "Холодная", value: `${fermentation.coldHours} ч` },
+          ]}
+        />
+      </Section>
 
-      <h2>Итоговая масса: {total} г</h2>
+      {/* -------------------------------------------------- */}
+      {/* ИТОГ */}
+      {/* -------------------------------------------------- */}
+      <Section title="Итоговая масса">
+        <Table
+          rows={[
+            { label: "Предфермент", value: `${totalPreferment} г` },
+            { label: "Финальное тесто", value: `${totalFinal} г` },
+            { label: "Общая масса", value: `${total} г` },
+          ]}
+        />
+      </Section>
 
       <div style={{ marginTop: "32px" }}>
         <button onClick={onBack}>← Назад</button>

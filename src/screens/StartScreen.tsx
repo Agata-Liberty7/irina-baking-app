@@ -27,8 +27,94 @@ type StartScreenProps = {
   customRecipes: any[];
   onOpenCustomRecipe: (id: string) => void;
   onDeleteCustomRecipe: (id: string) => void;
-
 };
+
+// Универсальная секция
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
+  title,
+  children,
+}) => (
+  <section style={{ marginBottom: "40px" }}>
+    <h2 style={{ fontSize: "22px", marginBottom: "16px" }}>{title}</h2>
+    {children}
+  </section>
+);
+
+// Карточка профиля
+const ProfileCard: React.FC<{
+  id: string;
+  label: string;
+  category: string;
+  onSelect: (id: string) => void;
+}> = ({ id, label, category, onSelect }) => (
+  <button
+    type="button"
+    onClick={() => onSelect(id)}
+    style={{
+      padding: "12px 16px",
+      borderRadius: "8px",
+      border: "1px solid #ccc",
+      cursor: "pointer",
+      background: "#fff",
+      minWidth: "160px",
+      textAlign: "left",
+      display: "flex",
+      flexDirection: "column",
+      gap: "4px",
+    }}
+  >
+    <span style={{ fontWeight: 600 }}>{label}</span>
+    <span style={{ fontSize: "12px", color: "#777", textTransform: "uppercase" }}>
+      {category}
+    </span>
+  </button>
+);
+
+// Карточка кастомного рецепта
+const CustomRecipeCard: React.FC<{
+  recipe: any;
+  onOpen: (id: string) => void;
+  onDelete: (id: string) => void;
+}> = ({ recipe, onOpen, onDelete }) => (
+  <div
+    style={{
+      border: "1px solid #ccc",
+      borderRadius: "8px",
+      padding: "12px 16px",
+      background: "#fff",
+      minWidth: "240px",
+      position: "relative",
+    }}
+  >
+    <div
+      style={{ fontWeight: 600, cursor: "pointer" }}
+      onClick={() => onOpen(recipe.id)}
+    >
+      {recipe.name}
+    </div>
+
+    <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
+      {new Date(recipe.timestamp).toLocaleString()}
+    </div>
+
+    <button
+      type="button"
+      title="Удалить"
+      onClick={() => onDelete(recipe.id)}
+      style={{
+        position: "absolute",
+        top: "6px",
+        right: "6px",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "14px",
+      }}
+    >
+      🗑️
+    </button>
+  </div>
+);
 
 const StartScreen: React.FC<StartScreenProps> = ({
   climate,
@@ -48,34 +134,31 @@ const StartScreen: React.FC<StartScreenProps> = ({
   onOpenCustomRecipe,
   onDeleteCustomRecipe,
 }) => {
-  //
-  // Стандартные профили
-  //
   const profiles = [
-    { id: "bread", label: "Хлеб", category: "bread" },
-    { id: "baguette", label: "Багет", category: "bread" },
-    { id: "pizza", label: "Пицца", category: "bread" },
-    { id: "focaccia", label: "Фокачча", category: "bread" },
-    { id: "ciabatta", label: "Чиабатта", category: "bread" },
-    { id: "bagel", label: "Бейгл", category: "bread" },
-    { id: "pita", label: "Пита", category: "bread" },
+    { id: "bread", label: "Хлеб", category: "Хлеб" },
+    { id: "baguette", label: "Багет", category: "Хлеб" },
+    { id: "pizza", label: "Пицца", category: "Хлеб" },
+    { id: "focaccia", label: "Фокачча", category: "Хлеб" },
+    { id: "ciabatta", label: "Чиабатта", category: "Хлеб" },
+    { id: "bagel", label: "Бейгл", category: "Хлеб" },
+    { id: "pita", label: "Пита", category: "Хлеб" },
 
-    { id: "cinnabon", label: "Синабон", category: "enriched" },
-    { id: "enriched", label: "Сдоба", category: "enriched" },
-    { id: "brioche", label: "Бриошь", category: "enriched" },
-    { id: "donuts", label: "Донатс", category: "enriched" },
-    { id: "ensaimada", label: "Энсаимада", category: "enriched" },
+    { id: "cinnabon", label: "Синабон", category: "Сдоба" },
+    { id: "enriched", label: "Сдоба (базовая)", category: "Сдоба" },
+    { id: "brioche", label: "Бриошь", category: "Сдоба" },
+    { id: "donuts", label: "Донатс", category: "Сдоба" },
+    { id: "ensaimada", label: "Энсаимада", category: "Сдоба" },
 
-    { id: "baked_pirozhki", label: "Пирожки из печи", category: "filled" },
-    { id: "belyashi", label: "Беляши", category: "filled" },
-    { id: "chebureki", label: "Чебуреки", category: "filled" },
-    { id: "empanada", label: "Эмпанада", category: "filled" },
+    { id: "baked_pirozhki", label: "Пирожки из печи", category: "Начинённые" },
+    { id: "belyashi", label: "Беляши", category: "Начинённые" },
+    { id: "chebureki", label: "Чебуреки", category: "Начинённые" },
+    { id: "empanada", label: "Эмпанада", category: "Начинённые" },
 
-    { id: "sourdough", label: "Хлеб на закваске", category: "sourdough" },
+    { id: "sourdough", label: "Хлеб на закваске", category: "Закваска" },
 
-    { id: "choux", label: "Заварное тесто", category: "nodough" },
-    { id: "shortcrust", label: "Песочное тесто", category: "nodough" },
-    { id: "sponge", label: "Бисквит", category: "nodough" },
+    { id: "choux", label: "Заварное тесто", category: "Бездрожжевое" },
+    { id: "shortcrust", label: "Песочное тесто", category: "Бездрожжевое" },
+    { id: "sponge", label: "Бисквит", category: "Бездрожжевое" },
   ];
 
   const climates = [
@@ -92,12 +175,10 @@ const StartScreen: React.FC<StartScreenProps> = ({
 
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px" }}>
+      {/* -------------------------------------------------- */}
       {/* УСЛОВИЯ ПРОИЗВОДСТВА */}
-      <section style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "24px", marginBottom: "16px" }}>
-          Условия производства
-        </h1>
-
+      {/* -------------------------------------------------- */}
+      <Section title="Условия производства">
         <div
           style={{
             display: "grid",
@@ -196,105 +277,54 @@ const StartScreen: React.FC<StartScreenProps> = ({
             </div>
           </div>
         </div>
-      </section>
+      </Section>
 
+      {/* -------------------------------------------------- */}
       {/* СТАНДАРТНЫЕ ПРОФИЛИ */}
-      <section>
-        <h2 style={{ fontSize: "22px", marginBottom: "16px" }}>
-          Выберите тип теста
-        </h2>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-          {profiles.map((profile) => (
-            <button
-              key={profile.id}
-              type="button"
-              onClick={() => onProfileSelect(profile.id)}
-              style={{
-                padding: "10px 14px",
-                borderRadius: "6px",
-                border: "1px solid #ccc",
-                cursor: "pointer",
-                background: "#fff",
-                minWidth: "140px",
-                textAlign: "left",
-              }}
-            >
-              <div style={{ fontWeight: 500 }}>{profile.label}</div>
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#777",
-                  marginTop: "2px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {profile.category}
-              </div>
-            </button>
+      {/* -------------------------------------------------- */}
+      <Section title="Выберите тип теста">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: "12px",
+          }}
+        >
+          {profiles.map((p) => (
+            <ProfileCard
+              key={p.id}
+              id={p.id}
+              label={p.label}
+              category={p.category}
+              onSelect={onProfileSelect}
+            />
           ))}
         </div>
-      </section>
+      </Section>
 
+      {/* -------------------------------------------------- */}
       {/* МОИ РЕЦЕПТЫ */}
+      {/* -------------------------------------------------- */}
       {customRecipes.length > 0 && (
-        <section style={{ marginTop: "40px" }}>
-          <h2 style={{ fontSize: "22px", marginBottom: "16px" }}>
-            Мои рецепты
-          </h2>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        <Section title="Мои рецепты">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: "12px",
+            }}
+          >
             {customRecipes.map((r) => (
-              <div
+              <CustomRecipeCard
                 key={r.id}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "6px",
-                  padding: "10px 14px",
-                  background: "#fff",
-                  minWidth: "220px",
-                  position: "relative",
-                }}
-              >
-                <div
-                  style={{ fontWeight: 500, cursor: "pointer" }}
-                  onClick={() => onOpenCustomRecipe(r.id)}
-                >
-                  {r.name}
-                </div>
-
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "#777",
-                    marginTop: "4px",
-                  }}
-                >
-                  {new Date(r.timestamp).toLocaleString()}
-                </div>
-
-                <button
-                  type="button"
-                  title="Удалить"
-                  onClick={() => onDeleteCustomRecipe(r.id)}
-                  style={{
-                    position: "absolute",
-                    top: "6px",
-                    right: "6px",
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
-                >
-                  🗑️
-                </button>
-              </div>
+                recipe={r}
+                onOpen={onOpenCustomRecipe}
+                onDelete={onDeleteCustomRecipe}
+              />
             ))}
           </div>
-        </section>
+        </Section>
       )}
-
     </div>
   );
 };

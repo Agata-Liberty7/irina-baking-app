@@ -1,22 +1,27 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
 
-type ScheduleStep = {
-  action: string;
-  timeFromStartMinutes: number;
-  comment?: string;
-};
-
 type TechCardProps = {
   profile: any;
   recipe: {
     preferment: {
       flour: number;
       water: number;
+      milk?: number;
       yeast: number;
       hydration: number;
     };
-    finalDough: any;
+    finalDough: {
+      flour: number;
+      water: number;
+      milk: number;
+      salt: number;
+      sugar: number;
+      fat: number;
+      eggs: number;
+      yeast: number;
+      hydration: number;
+    };
     effectivePrefermentHours: number;
     fermentation: {
       bulkHours: number;
@@ -24,57 +29,73 @@ type TechCardProps = {
       totalHours: number;
       notes: string[];
     };
+    total: number;
   };
   onBack: () => void;
 };
 
-// ------------------------------------------------------
+// -----------------------------
 // Форматирование времени
-// ------------------------------------------------------
-function formatTime(hoursFloat: number, mode: "minutes" | "hhmm" = "minutes") {
+// -----------------------------
+function formatTime(hoursFloat: number) {
   const hours = Math.floor(hoursFloat);
   const minutes = Math.round((hoursFloat - hours) * 60);
 
-  if (mode === "minutes") {
+  if (hoursFloat < 2) {
     return `${hours * 60 + minutes} мин`;
   }
 
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
-function formatTimeSmart(hoursFloat: number) {
-  return hoursFloat < 2
-    ? formatTime(hoursFloat, "minutes")
-    : formatTime(hoursFloat, "hhmm");
-}
 
-function normalizeDoughComposition(dough: any) {
-  return {
-    salt: dough.salt > 0,
-    sugar: dough.sugar > 0 || dough.honey > 0 || dough.sweetener > 0,
-    fat: dough.fat > 0 || dough.butter > 0 || dough.oil > 0,
-    eggs: dough.eggs > 0,
-    milk: dough.milk > 0,
-  };
-}
+// -----------------------------
+// Универсальный блок
+// -----------------------------
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
+  title,
+  children,
+}) => (
+  <section style={{ marginBottom: "32px" }}>
+    <h2 style={{ marginBottom: "12px" }}>{title}</h2>
+    {children}
+  </section>
+);
 
-function getRemainingIngredients(dough: any) {
-  const normalized = normalizeDoughComposition(dough);
-  const items: string[] = [];
-
-  if (normalized.salt) items.push("соль");
-  if (normalized.sugar) items.push("сахар");
-  if (normalized.fat) items.push("жиры");
-  if (normalized.milk) items.push("молоко");
-  if (normalized.eggs) items.push("яйца");
-
-  return items;
-}
+// -----------------------------
+// Таблица ингредиентов
+// -----------------------------
+const Table: React.FC<{ rows: { label: string; value: any }[] }> = ({ rows }) => (
+  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <tbody>
+      {rows
+        .filter((r) => r.value !== 0 && r.value !== null && r.value !== undefined)
+        .map((row, i) => (
+          <tr key={i}>
+            <td style={{ padding: "4px 0", width: "60%" }}>{row.label}</td>
+            <td style={{ padding: "4px 0", fontWeight: 600 }}>{row.value}</td>
+          </tr>
+        ))}
+    </tbody>
+  </table>
+);
 
 const TechCard: React.FC<TechCardProps> = ({ profile, recipe, onBack }) => {
-  const { roomTemp, climate, mixing } = useAppContext();
-  const { preferment, finalDough, effectivePrefermentHours, fermentation } = recipe;
+  const { climate, mixing, roomTemp } = useAppContext();
+  const { preferment, finalDough, effectivePrefermentHours, fermentation, total } =
+    recipe;
 
-  const remaining = getRemainingIngredients(finalDough);
+  const totalPreferment =
+    preferment.flour + preferment.water + (preferment.milk || 0) + preferment.yeast;
+
+  const totalFinal =
+    finalDough.flour +
+    finalDough.water +
+    finalDough.milk +
+    finalDough.salt +
+    finalDough.sugar +
+    finalDough.fat +
+    finalDough.eggs * 50 +
+    finalDough.yeast;
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px" }}>
@@ -83,10 +104,76 @@ const TechCard: React.FC<TechCardProps> = ({ profile, recipe, onBack }) => {
       </button>
 
       {/* -------------------------------------------------- */}
-      {/* 1. ПОДГОТОВКА СЫРЬЯ */}
+      {/* 1. Заголовок */}
       {/* -------------------------------------------------- */}
-      <section style={{ marginBottom: "32px" }}>
-        <h2>Подготовка сырья</h2>
+      <h1 style={{ marginBottom: "24px" }}>{profile.name}</h1>
+
+      <Section title="Условия">
+        <Table
+          rows={[
+            { label: "Климат", value: climate },
+            { label: "Замес", value: mixing },
+            { label: "Температура помещения", value: `${roomTemp}°C` },
+          ]}
+        />
+      </Section>
+
+      {/* -------------------------------------------------- */}
+      {/* 2. Состав теста */}
+      {/* -------------------------------------------------- */}
+      <Section title="Состав теста">
+        <h3>Предфермент</h3>
+        <Table
+          rows={[
+            { label: "Мука", value: `${preferment.flour} г` },
+            { label: "Вода", value: `${preferment.water} г` },
+            { label: "Молоко", value: preferment.milk ? `${preferment.milk} г` : null },
+            { label: "Дрожжи", value: `${preferment.yeast} г` },
+            { label: "Гидратация", value: `${preferment.hydration}%` },
+            {
+              label: "Эквивалентное время ферментации",
+              value: formatTime(effectivePrefermentHours),
+            },
+          ]}
+        />
+
+        <h3 style={{ marginTop: "24px" }}>Основное тесто</h3>
+        <Table
+          rows={[
+            { label: "Мука", value: `${finalDough.flour} г` },
+            { label: "Вода", value: `${finalDough.water} г` },
+            { label: "Молоко", value: finalDough.milk ? `${finalDough.milk} г` : null },
+            { label: "Соль", value: `${finalDough.salt} г` },
+            { label: "Сахар", value: `${finalDough.sugar} г` },
+            { label: "Жиры", value: `${finalDough.fat} г` },
+            { label: "Яйца", value: `${finalDough.eggs} шт` },
+            { label: "Дрожжи", value: `${finalDough.yeast} г` },
+            { label: "Гидратация", value: `${finalDough.hydration}%` },
+          ]}
+        />
+
+        <h3 style={{ marginTop: "24px" }}>Итог</h3>
+        <Table
+          rows={[
+            { label: "Масса предфермента", value: `${totalPreferment} г` },
+            { label: "Масса финального теста", value: `${totalFinal} г` },
+            { label: "Общая масса", value: `${total} г` },
+          ]}
+        />
+      </Section>
+
+      {/* -------------------------------------------------- */}
+      {/* 3. Технологический процесс */}
+      {/* -------------------------------------------------- */}
+      <Section title="Технологический процесс">
+        <h3>Подготовка сырья</h3>
+        {profile.uiHints?.notesForBaker && (
+          <ul>
+            {profile.uiHints.notesForBaker.map((n: string, i: number) => (
+              <li key={i}>{n}</li>
+            ))}
+          </ul>
+        )}
 
         {profile.climateAdjustments?.[climate]?.comment && (
           <p>{profile.climateAdjustments[climate].comment}</p>
@@ -96,163 +183,69 @@ const TechCard: React.FC<TechCardProps> = ({ profile, recipe, onBack }) => {
           <p>{profile.mixingAdjustments[mixing].comment}</p>
         )}
 
-        {profile.uiHints?.notesForBaker && (
-          <ul>
-            {profile.uiHints.notesForBaker.map((n: string, i: number) => (
-              <li key={i}>{n}</li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {/* -------------------------------------------------- */}
-      {/* 2. АВТОЛИЗ */}
-      {/* -------------------------------------------------- */}
-      {profile.schedule.bulk.steps.some((s: ScheduleStep) => s.action === "Автолиз") && (
-        <section style={{ marginBottom: "32px" }}>
-          <h2>Автолиз</h2>
-          <p>
-            Мука + вода (без соли, сахара, жиров, молока и яиц).<br />
-            Температура: <strong>{roomTemp}°C</strong><br />
-            Время: <strong>20–40 минут</strong>
-          </p>
-        </section>
-      )}
-
-      {/* -------------------------------------------------- */}
-      {/* 3. ДОБАВЛЕНИЕ ИНГРЕДИЕНТОВ */}
-      {/* -------------------------------------------------- */}
-      <section style={{ marginBottom: "32px" }}>
-        <h2>Добавление ингредиентов</h2>
-
-        {remaining.length > 0 ? (
-          <p>
-            Добавляем: <strong>{remaining.join(", ")}</strong>.<br />
-            Замешиваем до средней клейковины.
-          </p>
-        ) : (
-          <p>Нет ингредиентов, добавляемых после автолиза.</p>
-        )}
-      </section>
-
-      {/* -------------------------------------------------- */}
-      {/* 4. ПРЕДФЕРМЕНТ */}
-      {/* -------------------------------------------------- */}
-      {preferment.flour > 0 && (
-        <section style={{ marginBottom: "32px" }}>
-          <h2>Предфермент</h2>
-          <p>
-            Мука: <strong>{preferment.flour} г</strong><br />
-            Вода: <strong>{preferment.water} г</strong><br />
-            Дрожжи: <strong>{preferment.yeast} г</strong><br />
-            Гидратация: <strong>{preferment.hydration}%</strong>
-          </p>
-
-          <p>
-            Эквивалентное время ферментации:{" "}
-            <strong>{formatTime(effectivePrefermentHours)}</strong>
-          </p>
-
-          {profile.preferment?.comment && (
-            <p style={{ fontSize: "0.9rem", opacity: 0.8 }}>
-              {profile.preferment.comment}
+        {profile.schedule.autolyse?.enabled && (
+          <>
+            <h3 style={{ marginTop: "24px" }}>Автолиз</h3>
+            <p>
+              Время: <strong>{profile.schedule.autolyse.minutes} мин</strong>
+              <br />
+              Температура: <strong>{roomTemp}°C</strong>
             </p>
-          )}
-        </section>
-      )}
+          </>
+        )}
 
-      {/* -------------------------------------------------- */}
-      {/* 5. ОСНОВНОЕ БРОЖЕНИЕ */}
-      {/* -------------------------------------------------- */}
-      <section style={{ marginBottom: "32px" }}>
-        <h2>Основное брожение</h2>
-
+        <h3 style={{ marginTop: "24px" }}>Основное брожение</h3>
         <p>
-          Длительность:{" "}
-          <strong>{formatTime(fermentation.bulkHours)}</strong><br />
+          Длительность: <strong>{formatTime(fermentation.bulkHours)}</strong>
+          <br />
           Температура: <strong>{roomTemp}°C</strong>
         </p>
 
-        {profile.schedule.bulk.steps.map((step: ScheduleStep, i: number) => (
+        {profile.schedule.bulk.steps.map((step: any, i: number) => (
           <div key={i} style={{ marginTop: "8px" }}>
-            <strong>{step.action}</strong> —{" "}
-            {formatTime(step.timeFromStartMinutes / 60, "hhmm")}
+            <strong>{step.action}</strong> — {formatTime(step.timeFromStartMinutes / 60)}
             {step.comment && <div>{step.comment}</div>}
           </div>
         ))}
-      </section>
 
-      {/* -------------------------------------------------- */}
-      {/* 6. ХОЛОДНАЯ ФЕРМЕНТАЦИЯ */}
-      {/* -------------------------------------------------- */}
-      {profile.schedule.coldRetard.enabled && (
-        <section style={{ marginBottom: "32px" }}>
-          <h2>Холодная ферментация</h2>
+        {profile.schedule.coldRetard?.enabled && (
+          <>
+            <h3 style={{ marginTop: "24px" }}>Холодная ферментация</h3>
+            <p>
+              Длительность:{" "}
+              <strong>{formatTime(profile.schedule.coldRetard.hours)}</strong>
+              <br />
+              Температура:{" "}
+              <strong>{profile.schedule.coldRetard.temperature}°C</strong>
+            </p>
+            {profile.schedule.coldRetard.comment && (
+              <p>{profile.schedule.coldRetard.comment}</p>
+            )}
+          </>
+        )}
 
-          <p>
-            Длительность:{" "}
-            <strong>{formatTime(profile.schedule.coldRetard.hours)}</strong><br />
-            Температура: <strong>{profile.schedule.coldRetard.temperature}°C</strong>
-          </p>
-
-          {profile.schedule.coldRetard.comment && (
-            <p>{profile.schedule.coldRetard.comment}</p>
-          )}
-        </section>
-      )}
-
-      {/* -------------------------------------------------- */}
-      {/* 7. ФОРМОВКА */}
-      {/* -------------------------------------------------- */}
-      <section style={{ marginBottom: "32px" }}>
-        <h2>Формовка</h2>
-        <p>Сформировать изделие в соответствии с типом теста.</p>
-      </section>
-
-      {/* -------------------------------------------------- */}
-      {/* 8. ФИНАЛЬНАЯ РАССТОЙКА */}
-      {/* -------------------------------------------------- */}
-      <section style={{ marginBottom: "32px" }}>
-        <h2>Финальная расстойка</h2>
-
+        <h3 style={{ marginTop: "24px" }}>Финальная расстойка</h3>
         <p>
-          Длительность:{" "}
-          <strong>{formatTime(fermentation.proofHours)}</strong><br />
+          Длительность: <strong>{formatTime(fermentation.proofHours)}</strong>
+          <br />
           Температура: <strong>{roomTemp}°C</strong>
         </p>
 
         {profile.schedule.finalProof?.comment && (
           <p>{profile.schedule.finalProof.comment}</p>
         )}
-      </section>
 
-      {/* -------------------------------------------------- */}
-      {/* 9. ВЫПЕЧКА */}
-      {/* -------------------------------------------------- */}
-      {profile.bake && (
-        <section style={{ marginBottom: "32px" }}>
-          <h2>Выпечка</h2>
-
-          <p>
-            Температура: <strong>{profile.bake.temperature}°C</strong><br />
-            Время: <strong>{profile.bake.timeMinutes} минут</strong>
-          </p>
-        </section>
-      )}
-
-      {/* -------------------------------------------------- */}
-      {/* 10. СОВЕТЫ ПЕКАРЮ */}
-      {/* -------------------------------------------------- */}
-      {profile.uiHints?.notesForBaker && (
-        <section style={{ marginBottom: "32px" }}>
-          <h2>Советы пекарю</h2>
-          <ul>
-            {profile.uiHints.notesForBaker.map((n: string, i: number) => (
-              <li key={i}>{n}</li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {profile.bake && (
+          <>
+            <h3 style={{ marginTop: "24px" }}>Выпечка</h3>
+            <p>
+              Температура: <strong>{profile.bake.temperature}°C</strong>
+              <br />
+              Время: <strong>{profile.bake.timeMinutes} мин</strong>
+            </p>
+          </>
+        )}
+      </Section>
     </div>
   );
 };

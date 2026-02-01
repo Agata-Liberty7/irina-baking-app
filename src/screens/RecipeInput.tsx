@@ -13,7 +13,6 @@ type RecipeInputProps = {
     fat: number;
     eggs: number;
 
-    // новое:
     prefermentType: PrefermentType;
     prefermentFlourPct: number;
     prefermentHydrationPct: number;
@@ -28,7 +27,6 @@ type RecipeInputProps = {
     fat: number;
     eggs: number;
 
-    // новое:
     prefermentType: PrefermentType;
     prefermentFlourPct: number;
     prefermentHydrationPct: number;
@@ -36,6 +34,16 @@ type RecipeInputProps = {
   }) => void;
 };
 
+// Универсальная секция
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
+  title,
+  children,
+}) => (
+  <section style={{ marginBottom: "32px" }}>
+    <h2 style={{ marginBottom: "12px" }}>{title}</h2>
+    {children}
+  </section>
+);
 
 const RecipeInput: React.FC<RecipeInputProps> = ({
   profileId,
@@ -44,7 +52,7 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
   onBack,
   onCalculate,
 }) => {
-  // режим расчёта: по муке / по весу теста
+  // режим расчёта
   const [mode, setMode] = React.useState<"flour" | "dough">("flour");
 
   // поля
@@ -56,12 +64,9 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
   const [fat, setFat] = React.useState(initialValues.fat);
   const [eggs, setEggs] = React.useState(initialValues.eggs);
 
-  // hydration пока берём из initialValues, чтобы RecipeOutput не ломался
   const [hydration] = React.useState(initialValues.hydration);
 
-  // -----------------------------
-  // ПРЕДФЕРМЕНТ (новые поля)
-  // -----------------------------
+  // предфермент
   const [prefermentType, setPrefermentType] = React.useState(
     profile.preferment?.type ?? "none"
   );
@@ -78,14 +83,11 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
     profile.preferment?.yeastPct ?? 100
   );
 
-  // -----------------------------
-  // SUBMIT
-  // -----------------------------
+  // submit
   const handleSubmit = () => {
     let finalFlour = flour;
 
     if (mode === "dough" && targetDoughWeight > 0) {
-      // временная логика, пока не подключим матмодель
       const water = (finalFlour * hydration) / 100;
       const saltGr = (finalFlour * salt) / 100;
       const sugarGr = (finalFlour * sugar) / 100;
@@ -106,7 +108,6 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       fat,
       eggs,
 
-      // новое:
       prefermentType,
       prefermentFlourPct,
       prefermentHydrationPct,
@@ -120,129 +121,111 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
         ← Назад
       </button>
 
-      <h1 style={{ marginBottom: "24px" }}>
-        Параметры теста: {profileId}
-      </h1>
+      <h1 style={{ marginBottom: "24px" }}>Параметры теста: {profileId}</h1>
 
-      {/* Режим расчёта */}
-      <div style={{ marginBottom: "24px" }}>
-        <label style={{ marginRight: "16px" }}>
-          <input
-            type="radio"
-            checked={mode === "flour"}
-            onChange={() => setMode("flour")}
-          />
-          {" "}По муке
-        </label>
-
-        <label>
-          <input
-            type="radio"
-            checked={mode === "dough"}
-            onChange={() => setMode("dough")}
-          />
-          {" "}По весу теста
-        </label>
-      </div>
-
-      <div style={{ display: "grid", gap: "16px" }}>
-        {/* Мука или целевой вес */}
-        {mode === "flour" ? (
-          <NumberInput
-            label="Мука (г)"
-            value={flour}
-            onChange={setFlour}
-          />
-        ) : (
-          <NumberInput
-            label="Целевой вес теста (г)"
-            value={targetDoughWeight}
-            onChange={setTargetDoughWeight}
-          />
-        )}
-
-        {/* Проценты */}
-        <NumberInput
-          label="Соль (% от муки)"
-          value={salt}
-          onChange={setSalt}
-        />
-
-        <NumberInput
-          label="Сахар (% от муки)"
-          value={sugar}
-          onChange={setSugar}
-        />
-
-        <NumberInput
-          label="Жиры (% от муки)"
-          value={fat}
-          onChange={setFat}
-        />
-
-        <NumberInput
-          label="Яйца (шт)"
-          value={eggs}
-          onChange={setEggs}
-        />
-
-        {/* -------------------------------- */}
-        {/* ПРЕДФЕРМЕНТ — НОВЫЙ БЛОК         */}
-        {/* -------------------------------- */}
-        <div style={{ marginTop: "24px" }}>
-          <h2 style={{ marginBottom: "12px" }}>Предфермент</h2>
-
-          {/* Тип предфермента */}
-          <label style={{ display: "block", marginBottom: "8px" }}>
-            Тип:
-            <select
-              value={prefermentType}
-              onChange={(e) => setPrefermentType(e.target.value)}
-              style={{ marginLeft: "8px" }}
-            >
-              <option value="none">Без предфермента</option>
-              <option value="poolish">Пулеш</option>
-              <option value="biga">Бига</option>
-              <option value="sponge">Спонж</option>
-              <option value="opara">Опара</option>
-              <option value="tangzhong">Тангзонг</option>
-              <option value="yudane">Юдане</option>
-            </select>
+      {/* -------------------------------------------------- */}
+      {/* РЕЖИМ РАСЧЁТА */}
+      {/* -------------------------------------------------- */}
+      <Section title="Режим расчёта">
+        <div style={{ display: "flex", gap: "24px" }}>
+          <label>
+            <input
+              type="radio"
+              checked={mode === "flour"}
+              onChange={() => setMode("flour")}
+            />{" "}
+            По муке
           </label>
 
-          {/* Параметры предфермента */}
-          {prefermentType !== "none" && (
-            <div style={{ display: "grid", gap: "12px", marginTop: "12px" }}>
-              <NumberInput
-                label="Мука в предферменте (% от общей муки)"
-                value={prefermentFlourPct}
-                onChange={setPrefermentFlourPct}
-              />
-
-              <NumberInput
-                label="Гидратация предфермента (%)"
-                value={prefermentHydrationPct}
-                onChange={setPrefermentHydrationPct}
-              />
-
-              <NumberInput
-                label="Дрожжи в предферменте (% от общей нормы)"
-                value={prefermentYeastPct}
-                onChange={setPrefermentYeastPct}
-              />
-            </div>
-          )}
+          <label>
+            <input
+              type="radio"
+              checked={mode === "dough"}
+              onChange={() => setMode("dough")}
+            />{" "}
+            По весу теста
+          </label>
         </div>
-      </div>
+      </Section>
 
+      {/* -------------------------------------------------- */}
+      {/* ОСНОВНЫЕ ИНГРЕДИЕНТЫ */}
+      {/* -------------------------------------------------- */}
+      <Section title="Основные ингредиенты">
+        <div style={{ display: "grid", gap: "16px" }}>
+          {mode === "flour" ? (
+            <NumberInput label="Мука (г)" value={flour} onChange={setFlour} />
+          ) : (
+            <NumberInput
+              label="Целевой вес теста (г)"
+              value={targetDoughWeight}
+              onChange={setTargetDoughWeight}
+            />
+          )}
+
+          <NumberInput label="Соль (% от муки)" value={salt} onChange={setSalt} />
+          <NumberInput label="Сахар (% от муки)" value={sugar} onChange={setSugar} />
+          <NumberInput label="Жиры (% от муки)" value={fat} onChange={setFat} />
+          <NumberInput label="Яйца (шт)" value={eggs} onChange={setEggs} />
+        </div>
+      </Section>
+
+      {/* -------------------------------------------------- */}
+      {/* ПРЕДФЕРМЕНТ */}
+      {/* -------------------------------------------------- */}
+      <Section title="Предфермент">
+        <label style={{ display: "block", marginBottom: "12px" }}>
+          Тип:
+          <select
+            value={prefermentType}
+            onChange={(e) => setPrefermentType(e.target.value as PrefermentType)}
+            style={{ marginLeft: "8px", padding: "6px" }}
+          >
+            <option value="none">Без предфермента</option>
+            <option value="poolish">Пулеш</option>
+            <option value="biga">Бига</option>
+            <option value="sponge">Спонж</option>
+            <option value="opara">Опара</option>
+            <option value="tangzhong">Тангзонг</option>
+            <option value="yudane">Юдане</option>
+          </select>
+        </label>
+
+        {prefermentType !== "none" && (
+          <div style={{ display: "grid", gap: "16px" }}>
+            <NumberInput
+              label="Мука в предферменте (% от общей муки)"
+              value={prefermentFlourPct}
+              onChange={setPrefermentFlourPct}
+            />
+
+            <NumberInput
+              label="Гидратация предфермента (%)"
+              value={prefermentHydrationPct}
+              onChange={setPrefermentHydrationPct}
+            />
+
+            <NumberInput
+              label="Дрожжи в предферменте (% от общей нормы)"
+              value={prefermentYeastPct}
+              onChange={setPrefermentYeastPct}
+            />
+          </div>
+        )}
+      </Section>
+
+      {/* -------------------------------------------------- */}
+      {/* КНОПКА */}
+      {/* -------------------------------------------------- */}
       <button
         onClick={handleSubmit}
         style={{
-          marginTop: "24px",
+          marginTop: "16px",
           padding: "12px 16px",
           borderRadius: "6px",
           border: "1px solid #000",
           cursor: "pointer",
+          fontSize: "16px",
         }}
       >
         Рассчитать рецепт

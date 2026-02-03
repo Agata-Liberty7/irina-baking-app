@@ -1,27 +1,15 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
 
+type ScheduleStep = {
+  action: string;
+  timeFromStartMinutes: number;
+  comment?: string;
+};
+
 type TechCardProps = {
   profile: any;
   recipe: {
-    preferment: {
-      flour: number;
-      water: number;
-      milk?: number;
-      yeast: number;
-      hydration: number;
-    };
-    finalDough: {
-      flour: number;
-      water: number;
-      milk: number;
-      salt: number;
-      sugar: number;
-      fat: number;
-      eggs: number;
-      yeast: number;
-      hydration: number;
-    };
     effectivePrefermentHours: number;
     fermentation: {
       bulkHours: number;
@@ -29,14 +17,11 @@ type TechCardProps = {
       totalHours: number;
       notes: string[];
     };
-    total: number;
   };
   onBack: () => void;
 };
 
-// -----------------------------
 // Форматирование времени
-// -----------------------------
 function formatTime(hoursFloat: number) {
   const hours = Math.floor(hoursFloat);
   const minutes = Math.round((hoursFloat - hours) * 60);
@@ -48,9 +33,7 @@ function formatTime(hoursFloat: number) {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
-// -----------------------------
-// Универсальный блок
-// -----------------------------
+// Универсальная секция
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   title,
   children,
@@ -61,191 +44,281 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   </section>
 );
 
-// -----------------------------
-// Таблица ингредиентов
-// -----------------------------
-const Table: React.FC<{ rows: { label: string; value: any }[] }> = ({ rows }) => (
-  <table style={{ width: "100%", borderCollapse: "collapse" }}>
-    <tbody>
-      {rows
-        .filter((r) => r.value !== 0 && r.value !== null && r.value !== undefined)
-        .map((row, i) => (
-          <tr key={i}>
-            <td style={{ padding: "4px 0", width: "60%" }}>{row.label}</td>
-            <td style={{ padding: "4px 0", fontWeight: 600 }}>{row.value}</td>
-          </tr>
-        ))}
-    </tbody>
-  </table>
-);
-
 const TechCard: React.FC<TechCardProps> = ({ profile, recipe, onBack }) => {
-  const { climate, mixing, roomTemp } = useAppContext();
-  const { preferment, finalDough, effectivePrefermentHours, fermentation, total } =
-    recipe;
+  const { roomTemp, climate, mixing } = useAppContext();
+  const { effectivePrefermentHours, fermentation } = recipe;
 
-  const totalPreferment =
-    preferment.flour + preferment.water + (preferment.milk || 0) + preferment.yeast;
+  const [mode, setMode] = React.useState<"compact" | "timeline" | "full">(
+    "compact"
+  );
 
-  const totalFinal =
-    finalDough.flour +
-    finalDough.water +
-    finalDough.milk +
-    finalDough.salt +
-    finalDough.sugar +
-    finalDough.fat +
-    finalDough.eggs * 50 +
-    finalDough.yeast;
-
-  return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px" }}>
-      <button onClick={onBack} style={{ marginBottom: "16px" }}>
-        ← Назад
-      </button>
-
-      {/* -------------------------------------------------- */}
-      {/* 1. Заголовок */}
-      {/* -------------------------------------------------- */}
-      <h1 style={{ marginBottom: "24px" }}>{profile.name}</h1>
-
+  // ------------------------------------------------------------
+  // 1. COMPACT MODE
+  // ------------------------------------------------------------
+  const renderCompact = () => (
+    <>
       <Section title="Условия">
-        <Table
-          rows={[
-            { label: "Климат", value: climate },
-            { label: "Замес", value: mixing },
-            { label: "Температура помещения", value: `${roomTemp}°C` },
-          ]}
-        />
+        <p>Климат: <strong>{climate}</strong></p>
+        <p>Замес: <strong>{mixing}</strong></p>
+        <p>Температура помещения: <strong>{roomTemp}°C</strong></p>
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* 2. Состав теста */}
-      {/* -------------------------------------------------- */}
-      <Section title="Состав теста">
-        <h3>Предфермент</h3>
-        <Table
-          rows={[
-            { label: "Мука", value: `${preferment.flour} г` },
-            { label: "Вода", value: `${preferment.water} г` },
-            { label: "Молоко", value: preferment.milk ? `${preferment.milk} г` : null },
-            { label: "Дрожжи", value: `${preferment.yeast} г` },
-            { label: "Гидратация", value: `${preferment.hydration}%` },
-            {
-              label: "Эквивалентное время ферментации",
-              value: formatTime(effectivePrefermentHours),
-            },
-          ]}
-        />
+      {profile.preferment?.type !== "none" && (
+        <Section title="Предфермент">
+          <p>Тип: <strong>{profile.preferment.type}</strong></p>
+          <p>Эквивалентное время: <strong>{formatTime(effectivePrefermentHours)}</strong></p>
+        </Section>
+      )}
 
-        <h3 style={{ marginTop: "24px" }}>Основное тесто</h3>
-        <Table
-          rows={[
-            { label: "Мука", value: `${finalDough.flour} г` },
-            { label: "Вода", value: `${finalDough.water} г` },
-            { label: "Молоко", value: finalDough.milk ? `${finalDough.milk} г` : null },
-            { label: "Соль", value: `${finalDough.salt} г` },
-            { label: "Сахар", value: `${finalDough.sugar} г` },
-            { label: "Жиры", value: `${finalDough.fat} г` },
-            { label: "Яйца", value: `${finalDough.eggs} шт` },
-            { label: "Дрожжи", value: `${finalDough.yeast} г` },
-            { label: "Гидратация", value: `${finalDough.hydration}%` },
-          ]}
-        />
-
-        <h3 style={{ marginTop: "24px" }}>Итог</h3>
-        <Table
-          rows={[
-            { label: "Масса предфермента", value: `${totalPreferment} г` },
-            { label: "Масса финального теста", value: `${totalFinal} г` },
-            { label: "Общая масса", value: `${total} г` },
-          ]}
-        />
+      <Section title="Основное брожение">
+        <p><strong>{formatTime(fermentation.bulkHours)}</strong> при {roomTemp}°C</p>
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* 3. Технологический процесс */}
-      {/* -------------------------------------------------- */}
-      <Section title="Технологический процесс">
-        <h3>Подготовка сырья</h3>
+      {profile.schedule.bulk.steps.map((step: ScheduleStep, i: number) => (
+        <p key={i}>
+          {step.action} — {formatTime(step.timeFromStartMinutes / 60)}
+        </p>
+      ))}
+
+      {profile.schedule.coldRetard?.enabled && (
+        <Section title="Холодная ферментация">
+          <p>
+            <strong>{formatTime(profile.schedule.coldRetard.hours)}</strong> при{" "}
+            {profile.schedule.coldRetard.temperature}°C
+          </p>
+        </Section>
+      )}
+
+      <Section title="Финальная расстойка">
+        <p>
+          <strong>{formatTime(fermentation.proofHours)}</strong> при {roomTemp}°C
+        </p>
+      </Section>
+
+      <Section title="Выпечка">
+        <p>
+          {profile.bake.temperature}°C, {profile.bake.timeMinutes} мин
+        </p>
+      </Section>
+    </>
+  );
+
+  // ------------------------------------------------------------
+  // 2. TIMELINE MODE
+  // ------------------------------------------------------------
+  const renderTimeline = () => {
+    const timeline: { time: string; label: string; comment?: string }[] = [];
+
+    // Автолиз
+    if (profile.schedule.autolyse?.enabled) {
+      timeline.push({
+        time: "0:00",
+        label: `Автолиз (${profile.schedule.autolyse.minutes} мин)`,
+      });
+    }
+
+    // Bulk steps
+    profile.schedule.bulk.steps.forEach((step: ScheduleStep) => {
+      timeline.push({
+        time: formatTime(step.timeFromStartMinutes / 60),
+        label: step.action,
+        comment: step.comment,
+      });
+    });
+
+    // End of bulk
+    timeline.push({
+      time: formatTime(fermentation.bulkHours),
+      label: "Конец основного брожения",
+    });
+
+    // Cold retard
+    if (profile.schedule.coldRetard?.enabled) {
+      timeline.push({
+        time: formatTime(fermentation.bulkHours),
+        label: `Холодная ферментация (${formatTime(
+          profile.schedule.coldRetard.hours
+        )})`,
+      });
+    }
+
+    // Proof
+    timeline.push({
+      time: formatTime(
+        fermentation.bulkHours +
+          (profile.schedule.coldRetard?.hours ?? 0)
+      ),
+      label: `Финальная расстойка (${formatTime(fermentation.proofHours)})`,
+    });
+
+    // Bake
+    timeline.push({
+      time: formatTime(
+        fermentation.bulkHours +
+          (profile.schedule.coldRetard?.hours ?? 0) +
+          fermentation.proofHours
+      ),
+      label: `Выпечка (${profile.bake.temperature}°C, ${profile.bake.timeMinutes} мин)`,
+    });
+
+    return (
+      <Section title="Таймлайн процесса">
+        <div style={{ borderLeft: "2px solid #000", paddingLeft: "16px" }}>
+          {timeline.map((item, i) => (
+            <div key={i} style={{ marginBottom: "20px" }}>
+              <div style={{ fontWeight: 600 }}>{item.time}</div>
+              <div>{item.label}</div>
+              {item.comment && (
+                <div style={{ fontSize: "14px", color: "#555" }}>
+                  {item.comment}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </Section>
+    );
+  };
+
+  // ------------------------------------------------------------
+  // 3. FULL MODE (как раньше, но без рецептуры)
+  // ------------------------------------------------------------
+  const renderFull = () => (
+    <>
+      <Section title="Условия">
+        <p>Климат: <strong>{climate}</strong></p>
+        <p>Замес: <strong>{mixing}</strong></p>
+        <p>Температура помещения: <strong>{roomTemp}°C</strong></p>
+
         {profile.uiHints?.notesForBaker && (
-          <ul>
+          <ul style={{ marginTop: "12px" }}>
             {profile.uiHints.notesForBaker.map((n: string, i: number) => (
               <li key={i}>{n}</li>
             ))}
           </ul>
         )}
+      </Section>
 
-        {profile.climateAdjustments?.[climate]?.comment && (
-          <p>{profile.climateAdjustments[climate].comment}</p>
-        )}
+      {profile.preferment?.type !== "none" && (
+        <Section title="Предфермент">
+          <p>Тип: <strong>{profile.preferment.type}</strong></p>
+          <p>Эквивалентное время: <strong>{formatTime(effectivePrefermentHours)}</strong></p>
+        </Section>
+      )}
 
-        {profile.mixingAdjustments?.[mixing]?.comment && (
-          <p>{profile.mixingAdjustments[mixing].comment}</p>
-        )}
+      {profile.schedule.autolyse?.enabled && (
+        <Section title="Автолиз">
+          <p>
+            Время: <strong>{profile.schedule.autolyse.minutes} мин</strong>
+            <br />
+            Температура: <strong>{roomTemp}°C</strong>
+          </p>
+        </Section>
+      )}
 
-        {profile.schedule.autolyse?.enabled && (
-          <>
-            <h3 style={{ marginTop: "24px" }}>Автолиз</h3>
-            <p>
-              Время: <strong>{profile.schedule.autolyse.minutes} мин</strong>
-              <br />
-              Температура: <strong>{roomTemp}°C</strong>
-            </p>
-          </>
-        )}
-
-        <h3 style={{ marginTop: "24px" }}>Основное брожение</h3>
+      <Section title="Основное брожение">
         <p>
           Длительность: <strong>{formatTime(fermentation.bulkHours)}</strong>
           <br />
           Температура: <strong>{roomTemp}°C</strong>
         </p>
 
-        {profile.schedule.bulk.steps.map((step: any, i: number) => (
+        {profile.schedule.bulk.steps.map((step: ScheduleStep, i: number) => (
           <div key={i} style={{ marginTop: "8px" }}>
-            <strong>{step.action}</strong> — {formatTime(step.timeFromStartMinutes / 60)}
+            <strong>{step.action}</strong> —{" "}
+            {formatTime(step.timeFromStartMinutes / 60)}
             {step.comment && <div>{step.comment}</div>}
           </div>
         ))}
+      </Section>
 
-        {profile.schedule.coldRetard?.enabled && (
-          <>
-            <h3 style={{ marginTop: "24px" }}>Холодная ферментация</h3>
-            <p>
-              Длительность:{" "}
-              <strong>{formatTime(profile.schedule.coldRetard.hours)}</strong>
-              <br />
-              Температура:{" "}
-              <strong>{profile.schedule.coldRetard.temperature}°C</strong>
-            </p>
-            {profile.schedule.coldRetard.comment && (
-              <p>{profile.schedule.coldRetard.comment}</p>
-            )}
-          </>
-        )}
+      {profile.schedule.coldRetard?.enabled && (
+        <Section title="Холодная ферментация">
+          <p>
+            Длительность:{" "}
+            <strong>{formatTime(profile.schedule.coldRetard.hours)}</strong>
+            <br />
+            Температура:{" "}
+            <strong>{profile.schedule.coldRetard.temperature}°C</strong>
+          </p>
+        </Section>
+      )}
 
-        <h3 style={{ marginTop: "24px" }}>Финальная расстойка</h3>
+      <Section title="Финальная расстойка">
         <p>
           Длительность: <strong>{formatTime(fermentation.proofHours)}</strong>
           <br />
           Температура: <strong>{roomTemp}°C</strong>
         </p>
-
-        {profile.schedule.finalProof?.comment && (
-          <p>{profile.schedule.finalProof.comment}</p>
-        )}
-
-        {profile.bake && (
-          <>
-            <h3 style={{ marginTop: "24px" }}>Выпечка</h3>
-            <p>
-              Температура: <strong>{profile.bake.temperature}°C</strong>
-              <br />
-              Время: <strong>{profile.bake.timeMinutes} мин</strong>
-            </p>
-          </>
-        )}
       </Section>
+
+      <Section title="Выпечка">
+        <p>
+          Температура: <strong>{profile.bake.temperature}°C</strong>
+          <br />
+          Время: <strong>{profile.bake.timeMinutes} мин</strong>
+        </p>
+      </Section>
+    </>
+  );
+
+  // ------------------------------------------------------------
+  // MAIN RENDER
+  // ------------------------------------------------------------
+  return (
+    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px" }}>
+      <button onClick={onBack} style={{ marginBottom: "16px" }}>
+        ← Назад
+      </button>
+
+      <h1 style={{ marginBottom: "24px" }}>{profile.name}</h1>
+
+      {/* Переключатель режимов */}
+      <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
+        <button
+          onClick={() => setMode("compact")}
+          style={{
+            padding: "8px 12px",
+            border: mode === "compact" ? "2px solid #000" : "1px solid #ccc",
+            borderRadius: "6px",
+            background: mode === "compact" ? "#f0f0f0" : "transparent",
+            cursor: "pointer",
+          }}
+        >
+          Компактный
+        </button>
+
+        <button
+          onClick={() => setMode("timeline")}
+          style={{
+            padding: "8px 12px",
+            border: mode === "timeline" ? "2px solid #000" : "1px solid #ccc",
+            borderRadius: "6px",
+            background: mode === "timeline" ? "#f0f0f0" : "transparent",
+            cursor: "pointer",
+          }}
+        >
+          Таймлайн
+        </button>
+
+        <button
+          onClick={() => setMode("full")}
+          style={{
+            padding: "8px 12px",
+            border: mode === "full" ? "2px solid #000" : "1px solid #ccc",
+            borderRadius: "6px",
+            background: mode === "full" ? "#f0f0f0" : "transparent",
+            cursor: "pointer",
+          }}
+        >
+          Полный
+        </button>
+      </div>
+
+      {/* Режимы */}
+      {mode === "compact" && renderCompact()}
+      {mode === "timeline" && renderTimeline()}
+      {mode === "full" && renderFull()}
     </div>
   );
 };

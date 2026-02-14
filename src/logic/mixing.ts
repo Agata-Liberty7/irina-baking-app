@@ -1,17 +1,17 @@
 export const mixingAdjustments = {
   manual: {
-    hydrationDelta: 0,
+    hydrationDelta: -2,
     yeastPercentDelta: 0,
-    comment: "Ручной замес: стандартный режим."
+    comment: "Ручной замес: тесто менее развито, воды нужно меньше."
   },
   planetary: {
     hydrationDelta: 0,
     yeastPercentDelta: 0,
-    comment: "Планетарный миксер: классическая интенсивность."
+    comment: "Планетарный миксер: стандартная интенсивность."
   },
   spiral: {
     hydrationDelta: 2,
-    yeastPercentDelta: -0.05,
+    yeastPercentDelta: -0.1,
     comment: "Спиральный: лучше развивает клейковину, можно повысить воду."
   }
 };

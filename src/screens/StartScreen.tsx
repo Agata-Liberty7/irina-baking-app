@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import NumberInput from "../components/NumberInput";
 
-export type ProductionMode = "home" | "pro";
+export type ProductionMode = "home" | "professional";
 export type Climate = "dry" | "moderate" | "humid";
 export type MixingMethod = "manual" | "planetary" | "spiral";
+
+console.log("StartScreen МОНТИРУЕТСЯ");
 
 type StartScreenProps = {
   climate: Climate;
@@ -29,7 +31,6 @@ type StartScreenProps = {
   onDeleteCustomRecipe: (id: string) => void;
 };
 
-// Универсальная секция
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   title,
   children,
@@ -40,37 +41,6 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   </section>
 );
 
-// Карточка профиля
-const ProfileCard: React.FC<{
-  id: string;
-  label: string;
-  category: string;
-  onSelect: (id: string) => void;
-}> = ({ id, label, category, onSelect }) => (
-  <button
-    type="button"
-    onClick={() => onSelect(id)}
-    style={{
-      padding: "12px 16px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      cursor: "pointer",
-      background: "#fff",
-      minWidth: "160px",
-      textAlign: "left",
-      display: "flex",
-      flexDirection: "column",
-      gap: "4px",
-    }}
-  >
-    <span style={{ fontWeight: 600 }}>{label}</span>
-    <span style={{ fontSize: "12px", color: "#777", textTransform: "uppercase" }}>
-      {category}
-    </span>
-  </button>
-);
-
-// Карточка кастомного рецепта
 const CustomRecipeCard: React.FC<{
   recipe: any;
   onOpen: (id: string) => void;
@@ -116,6 +86,18 @@ const CustomRecipeCard: React.FC<{
   </div>
 );
 
+const CATEGORY_NAMES: Record<string, string> = {
+  bread: "Хлеб",
+  enriched: "Сдобное",
+  fried_enriched: "Сдобное жареное",
+  baked_filled: "Пирожки печёные",
+  fried_filled: "Пирожки жареные",
+  pastry: "Песочное",
+  choux: "Заварное",
+  cake: "Кексы и торты",
+  other: "Другое",
+};
+
 const StartScreen: React.FC<StartScreenProps> = ({
   climate,
   mixing,
@@ -134,50 +116,119 @@ const StartScreen: React.FC<StartScreenProps> = ({
   onOpenCustomRecipe,
   onDeleteCustomRecipe,
 }) => {
-  const profiles = [
-    { id: "bread", label: "Хлеб", category: "Хлеб" },
-    { id: "baguette", label: "Багет", category: "Хлеб" },
-    { id: "pizza", label: "Пицца", category: "Хлеб" },
-    { id: "focaccia", label: "Фокачча", category: "Хлеб" },
-    { id: "ciabatta", label: "Чиабатта", category: "Хлеб" },
-    { id: "bagel", label: "Бейгл", category: "Хлеб" },
-    { id: "pita", label: "Пита", category: "Хлеб" },
+  // -----------------------------
+  // АВТОМАТИЧЕСКАЯ ЗАГРУЗКА ПРОФИЛЕЙ
+  // -----------------------------
+  const modules = import.meta.glob("../profiles/*.json", { eager: true });
 
-    { id: "cinnabon", label: "Синабон", category: "Сдоба" },
-    { id: "enriched", label: "Сдоба (базовая)", category: "Сдоба" },
-    { id: "brioche", label: "Бриошь", category: "Сдоба" },
-    { id: "donuts", label: "Донатс", category: "Сдоба" },
-    { id: "ensaimada", label: "Энсаимада", category: "Сдоба" },
+  const indexData = useMemo(() => {
+    const categories: Record<string, any> = {};
 
-    { id: "baked_pirozhki", label: "Пирожки из печи", category: "Начинённые" },
-    { id: "belyashi", label: "Беляши", category: "Начинённые" },
-    { id: "chebureki", label: "Чебуреки", category: "Начинённые" },
-    { id: "empanada", label: "Эмпанада", category: "Начинённые" },
+    for (const path in modules) {
+      const profile = modules[path] as any;
 
-    { id: "sourdough", label: "Хлеб на закваске", category: "Закваска" },
+      // ❗ Удаляем предферменты
+      if (!profile.base) continue;
 
-    { id: "choux", label: "Заварное тесто", category: "Бездрожжевое" },
-    { id: "shortcrust", label: "Песочное тесто", category: "Бездрожжевое" },
-    { id: "sponge", label: "Бисквит", category: "Бездрожжевое" },
-  ];
+      const id = profile.id;
+      const category = profile.category || "other";
+      const subtype = profile.subtype || id;
+      const name = profile.name || id;
 
-  const climates = [
-    { value: "dry", label: "Сухой" },
-    { value: "moderate", label: "Умеренный" },
-    { value: "humid", label: "Влажный" },
-  ];
+      if (!categories[category]) {
+        categories[category] = {
+          name: CATEGORY_NAMES[category] || category,
+          subtypes: {},
+        };
+      }
 
-  const mixings = [
-    { value: "manual", label: "Ручной" },
-    { value: "planetary", label: "Планетарный" },
-    { value: "spiral", label: "Спиральный" },
-  ];
+      // ❗ Передаём только id, без .json
+      categories[category].subtypes[subtype] = {
+        name,
+        profile: id,
+      };
+    }
 
+    return { categories };
+  }, []);
+
+  // -----------------------------
+  // SEARCH
+  // -----------------------------
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+
+    const q = searchQuery.toLowerCase();
+    const results: any[] = [];
+
+    for (const [catKey, cat] of Object.entries(indexData.categories)) {
+      for (const [subKey, sub] of Object.entries(
+        cat.subtypes as Record<string, { name: string; profile: string }>
+      )) {
+        if (sub.name.toLowerCase().includes(q)) {
+          results.push({
+            category: catKey,
+            subtype: subKey,
+            profile: sub.profile,
+            name: sub.name,
+          });
+        }
+      }
+    }
+
+    return results;
+  }, [searchQuery, indexData]);
+
+  // -----------------------------
+  // FAVORITES
+  // -----------------------------
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    return JSON.parse(localStorage.getItem("favorites") || "[]");
+  });
+
+  const toggleFavorite = (profileId: string) => {
+    setFavorites((prev) => {
+      const updated = prev.includes(profileId)
+        ? prev.filter((id) => id !== profileId)
+        : [...prev, profileId];
+
+      localStorage.setItem("favorites", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // -----------------------------
+  // RECENT
+  // -----------------------------
+  const [recent, setRecent] = useState<string[]>(() => {
+    return JSON.parse(localStorage.getItem("recent") || "[]");
+  });
+
+  const addRecent = (profileId: string) => {
+    setRecent((prev) => {
+      const updated = [profileId, ...prev.filter((id) => id !== profileId)].slice(
+        0,
+        5
+      );
+      localStorage.setItem("recent", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // -----------------------------
+  // CATEGORY NAVIGATION
+  // -----------------------------
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubtype, setSelectedSubtype] = useState<string | null>(null);
+
+  // -----------------------------
+  // RENDER
+  // -----------------------------
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px" }}>
-      {/* -------------------------------------------------- */}
       {/* УСЛОВИЯ ПРОИЗВОДСТВА */}
-      {/* -------------------------------------------------- */}
       <Section title="Условия производства">
         <div
           style={{
@@ -211,11 +262,9 @@ const StartScreen: React.FC<StartScreenProps> = ({
               onChange={(e) => onClimateChange(e.target.value as Climate)}
               style={{ width: "100%", padding: "8px", marginTop: "4px" }}
             >
-              {climates.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
+              <option value="dry">Сухой</option>
+              <option value="moderate">Умеренный</option>
+              <option value="humid">Влажный</option>
             </select>
           </div>
 
@@ -226,11 +275,9 @@ const StartScreen: React.FC<StartScreenProps> = ({
               onChange={(e) => onMixingChange(e.target.value as MixingMethod)}
               style={{ width: "100%", padding: "8px", marginTop: "4px" }}
             >
-              {mixings.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
+              <option value="manual">Ручной</option>
+              <option value="planetary">Планетарный</option>
+              <option value="spiral">Спиральный</option>
             </select>
           </div>
 
@@ -258,16 +305,16 @@ const StartScreen: React.FC<StartScreenProps> = ({
 
               <button
                 type="button"
-                onClick={() => onProductionModeChange("pro")}
+                onClick={() => onProductionModeChange("professional")}
                 style={{
                   padding: "8px 12px",
                   borderRadius: "4px",
                   border:
-                    productionMode === "pro"
+                    productionMode === "professional"
                       ? "2px solid #000"
                       : "1px solid #ccc",
                   background:
-                    productionMode === "pro" ? "#f0f0f0" : "transparent",
+                    productionMode === "professional" ? "#f0f0f0" : "transparent",
                   cursor: "pointer",
                   flex: 1,
                 }}
@@ -279,32 +326,251 @@ const StartScreen: React.FC<StartScreenProps> = ({
         </div>
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* СТАНДАРТНЫЕ ПРОФИЛИ */}
-      {/* -------------------------------------------------- */}
-      <Section title="Выберите тип теста">
-        <div
+      {/* ПОИСК */}
+      <Section title="Поиск профилей">
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Введите название профиля..."
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-            gap: "12px",
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+            marginBottom: "16px",
           }}
-        >
-          {profiles.map((p) => (
-            <ProfileCard
-              key={p.id}
-              id={p.id}
-              label={p.label}
-              category={p.category}
-              onSelect={onProfileSelect}
-            />
-          ))}
-        </div>
+        />
+
+        {searchQuery && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "12px",
+            }}
+          >
+            {searchResults.map((item) => (
+              <button
+                key={item.profile}
+                onClick={() => {
+                  addRecent(item.profile);
+                  onProfileSelect(item.profile);
+                }}
+                style={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  background: "#fff",
+                  textAlign: "left",
+                }}
+              >
+                {item.name}
+              </button>
+            ))}
+          </div>
+        )}
       </Section>
 
-      {/* -------------------------------------------------- */}
+      {/* НЕДАВНИЕ И ИЗБРАННОЕ */}
+      {!searchQuery && (
+        <>
+          {recent.length > 0 && (
+            <Section title="Недавние профили">
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                  gap: "12px",
+                }}
+              >
+                {recent.map((id) => (
+                  <button
+                    key={id}
+                    onClick={() => onProfileSelect(id)}
+                    style={{
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #ccc",
+                      background: "#fff",
+                      textAlign: "left",
+                    }}
+                  >
+                    {id}
+                  </button>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {favorites.length > 0 && (
+            <Section title="Избранное">
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                  gap: "12px",
+                }}
+              >
+                {favorites.map((id) => (
+                  <button
+                    key={id}
+                    onClick={() => onProfileSelect(id)}
+                    style={{
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #ccc",
+                      background: "#fff",
+                      textAlign: "left",
+                    }}
+                  >
+                    {id}
+                  </button>
+                ))}
+              </div>
+            </Section>
+          )}
+        </>
+      )}
+
+      {/* КАТЕГОРИИ */}
+      {!searchQuery && !selectedCategory && (
+        <Section title="Категории теста">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "12px",
+            }}
+          >
+            {Object.entries(indexData.categories).map(([key, value]: any) => (
+              <button
+                key={key}
+                onClick={() => setSelectedCategory(key)}
+                style={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  background: "#fff",
+                  textAlign: "left",
+                }}
+              >
+                {value.name}
+              </button>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* ПОДТИПЫ */}
+      {selectedCategory && !selectedSubtype && (
+        <Section title={indexData.categories[selectedCategory].name}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "12px",
+            }}
+          >
+            {Object.entries(
+              indexData.categories[selectedCategory].subtypes
+            ).map(([key, value]: any) => (
+              <div key={key} style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => setSelectedSubtype(key)}
+                  style={{
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "1px solid #ccc",
+                    background: "#fff",
+                    textAlign: "left",
+                    flex: 1,
+                  }}
+                >
+                  {value.name}
+                </button>
+
+                <button
+                  onClick={() => toggleFavorite(value.profile)}
+                  style={{
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "1px solid #ccc",
+                    background: "#fff",
+                  }}
+                >
+                  {favorites.includes(value.profile) ? "★" : "☆"}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setSelectedCategory(null)}
+            style={{ marginTop: "16px" }}
+          >
+            Назад
+          </button>
+        </Section>
+      )}
+
+      {/* ПРОФИЛЬ */}
+      {selectedCategory && selectedSubtype && (
+        <Section
+          title={
+            indexData.categories[selectedCategory].subtypes[selectedSubtype].name
+          }
+        >
+          {(() => {
+            const profileId =
+              indexData.categories[selectedCategory].subtypes[selectedSubtype]
+                .profile;
+
+            return (
+              <>
+                <button
+                  onClick={() => {
+                    addRecent(profileId);
+                    onProfileSelect(profileId);
+                  }}
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid #000",
+                    background: "#fff",
+                    marginBottom: "16px",
+                  }}
+                >
+                  Открыть профиль
+                </button>
+
+                <button
+                  onClick={() => toggleFavorite(profileId)}
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    border: "1px solid #ccc",
+                    background: "#fff",
+                    marginBottom: "16px",
+                  }}
+                >
+                  {favorites.includes(profileId)
+                    ? "★ Удалить из избранного"
+                    : "☆ В избранное"}
+                </button>
+
+                <button
+                  onClick={() => setSelectedSubtype(null)}
+                  style={{ marginTop: "16px" }}
+                >
+                  Назад
+                </button>
+              </>
+            );
+          })()}
+        </Section>
+      )}
+
       {/* МОИ РЕЦЕПТЫ */}
-      {/* -------------------------------------------------- */}
       {customRecipes.length > 0 && (
         <Section title="Мои рецепты">
           <div

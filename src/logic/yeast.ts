@@ -12,13 +12,6 @@ export type YeastInput = {
 };
 
 export function calculateYeast(input: YeastInput) {
-  const baseYeast = input.profile.defaults.yeast;
-
-  // 🔥 если профиль явно разрешает 0 — не трогаем
-  if (baseYeast && baseYeast.allowZero && baseYeast.percent === 0) {
-    return { yeast: 0 };
-  }
-
   const {
     flour,
     sugar,
@@ -31,41 +24,59 @@ export function calculateYeast(input: YeastInput) {
     coldFermentationHours,
   } = input;
 
-  // 🔥 корректная инициализация дрожжей
-  let yeastPct: number;
+  // ------------------------------------------------------
+  // 1. БАЗОВАЯ НОРМА ДРОЖЖЕЙ
+  // ------------------------------------------------------
+  let yeastPct = profile.base.yeast?.percent ?? 1.5;
 
-  if (baseYeast?.allowZero && baseYeast.percent === 0) {
-    yeastPct = 0;
-  } else if (typeof baseYeast?.percent === "number") {
-    yeastPct = baseYeast.percent;
-  } else {
-    yeastPct = profile.baseYeast ?? 1.5;
+  // Если профиль разрешает 0 — оставляем 0
+  if (profile.base.yeast?.allowZero && profile.base.yeast.percent === 0) {
+    return { yeast: 0 };
   }
 
-  // Влажность
+  // ------------------------------------------------------
+  // 2. КЛИМАТ
+  // ------------------------------------------------------
   if (climate === "dry") yeastPct += 0.2;
   if (climate === "humid") yeastPct -= 0.2;
 
-  // Температура помещения
+  // ------------------------------------------------------
+  // 3. ТЕМПЕРАТУРА ПОМЕЩЕНИЯ
+  // ------------------------------------------------------
   if (roomTemp < 20) yeastPct += 0.4;
   if (roomTemp < 18) yeastPct += 0.7;
   if (roomTemp > 26) yeastPct -= 0.3;
   if (roomTemp > 28) yeastPct -= 0.6;
 
-  // Жиры и сахар
+  // ------------------------------------------------------
+  // 4. САХАР И ЖИРЫ
+  // ------------------------------------------------------
   yeastPct += sugar * 0.02;
   yeastPct += fat * 0.03;
 
-  // Производственный режим
+  // ------------------------------------------------------
+  // 5. ПРОИЗВОДСТВЕННЫЙ РЕЖИМ
+  // ------------------------------------------------------
   if (productionMode === "pro") yeastPct -= 0.2;
 
-  // Смешанная ферментация
-  const coldFactor = profile.isEnriched ? 0.33 : 0.25;
+  // ------------------------------------------------------
+  // 6. ТИП ТЕСТА (новая модель)
+  // ------------------------------------------------------
+  let coldFactor = 0.25;
+
+  if (profile.isEnriched) coldFactor = 0.33;
+  if (profile.isSourdough) coldFactor = 0.50;
+  if (profile.isFried) coldFactor = 0.20;
+  if (profile.isPastry) coldFactor = 0;
+  if (profile.isBoiled) coldFactor = 0.25;
 
   const effectiveHours =
     warmFermentationHours + coldFermentationHours * coldFactor;
 
-  const baseTime = profile.baseFermentationHours ?? 3;
+  const baseTime = profile.process?.bulkFermentationTarget
+    ? parseFloat(profile.process.bulkFermentationTarget)
+    : 3;
+
   const ratio = effectiveHours / baseTime;
 
   if (ratio > 1) {
@@ -75,9 +86,10 @@ export function calculateYeast(input: YeastInput) {
     yeastPct *= 1 + (1 - ratio) * 0.5;
   }
 
+  // ------------------------------------------------------
+  // 7. ФИНАЛЬНЫЙ РАСЧЁТ
+  // ------------------------------------------------------
   const yeast = Math.max(0, Math.round((flour * yeastPct) / 100));
 
   return { yeast };
 }
-
-        

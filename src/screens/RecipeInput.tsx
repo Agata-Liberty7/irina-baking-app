@@ -1,40 +1,15 @@
 import React from "react";
 import NumberInput from "../components/NumberInput";
-import { type PrefermentType } from "../logic/preferment";
+import type { PrefermentType } from "../logic/preferment";
 
 type RecipeInputProps = {
   profileId: string;
   profile: any;
-  initialValues: {
-    flour: number;
-    hydration: number;
-    salt: number;
-    sugar: number;
-    fat: number;
-    eggs: number;
-
-    prefermentType: PrefermentType;
-    prefermentFlourPct: number;
-    prefermentHydrationPct: number;
-    prefermentYeastPct: number;
-  };
+  initialValues: any;
   onBack: () => void;
-  onCalculate: (data: {
-    flour: number;
-    hydration: number;
-    salt: number;
-    sugar: number;
-    fat: number;
-    eggs: number;
-
-    prefermentType: PrefermentType;
-    prefermentFlourPct: number;
-    prefermentHydrationPct: number;
-    prefermentYeastPct: number;
-  }) => void;
+  onCalculate: (data: any) => void;
 };
 
-// Универсальная секция
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   title,
   children,
@@ -55,7 +30,7 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
   // режим расчёта
   const [mode, setMode] = React.useState<"flour" | "dough">("flour");
 
-  // поля
+  // === БАЗОВЫЕ ПОЛЯ ===
   const [flour, setFlour] = React.useState(initialValues.flour);
   const [targetDoughWeight, setTargetDoughWeight] = React.useState(0);
 
@@ -66,24 +41,32 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
 
   const [hydration] = React.useState(initialValues.hydration);
 
-  // предфермент
-  const [prefermentType, setPrefermentType] = React.useState(
-    profile.preferment?.type ?? "none"
+  // === ПРЕДФЕРМЕНТ ===
+  const prefermentEnabled = true; // теперь всегда можно выбрать, если профиль поддерживает
+
+  const [prefermentType, setPrefermentType] = React.useState<PrefermentType>(
+    initialValues.prefermentType || profile.preferment?.type || "none"
   );
 
   const [prefermentFlourPct, setPrefermentFlourPct] = React.useState(
-    profile.preferment?.flourPct ?? 0
+    initialValues.prefermentFlourPct ??
+      profile.preferment?.percentOfFlour ??
+      0
   );
 
   const [prefermentHydrationPct, setPrefermentHydrationPct] = React.useState(
-    profile.preferment?.hydrationPct ?? 100
+    initialValues.prefermentHydrationPct ??
+      profile.preferment?.hydration ??
+      100
   );
 
   const [prefermentYeastPct, setPrefermentYeastPct] = React.useState(
-    profile.preferment?.yeastPct ?? 100
+    initialValues.prefermentYeastPct ??
+      profile.preferment?.yeastPercentInPreferment ??
+      0
   );
 
-  // submit
+  // === SUBMIT ===
   const handleSubmit = () => {
     let finalFlour = flour;
 
@@ -94,9 +77,10 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       const fatGr = (finalFlour * fat) / 100;
       const eggsGr = eggs * 50;
 
-      const totalNow = finalFlour + water + saltGr + sugarGr + fatGr + eggsGr;
-      const ratio = targetDoughWeight / totalNow;
+      const totalNow =
+        finalFlour + water + saltGr + sugarGr + fatGr + eggsGr;
 
+      const ratio = targetDoughWeight / totalNow;
       finalFlour = Math.round(finalFlour * ratio);
     }
 
@@ -171,23 +155,24 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       </Section>
 
       {/* -------------------------------------------------- */}
-      {/* ПРЕДФЕРМЕНТ */}
+      {/* ПРЕДФЕРМЕНТ — ВСЕГДА ДОСТУПЕН */}
       {/* -------------------------------------------------- */}
       <Section title="Предфермент">
         <label style={{ display: "block", marginBottom: "12px" }}>
           Тип:
           <select
             value={prefermentType}
-            onChange={(e) => setPrefermentType(e.target.value as PrefermentType)}
+            onChange={(e) =>
+              setPrefermentType(e.target.value as PrefermentType)
+            }
             style={{ marginLeft: "8px", padding: "6px" }}
           >
             <option value="none">Без предфермента</option>
             <option value="poolish">Пулеш</option>
             <option value="biga">Бига</option>
-            <option value="sponge">Спонж</option>
-            <option value="opara">Опара</option>
-            <option value="tangzhong">Тангзонг</option>
-            <option value="yudane">Юдане</option>
+            <option value="levain">Левен</option>
+            <option value="yeasted_sponge">Спонж (дрожжевой)</option>
+            <option value="enriched">Обогащённый предфермент</option>
           </select>
         </label>
 

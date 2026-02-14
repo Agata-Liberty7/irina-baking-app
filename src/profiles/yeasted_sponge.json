@@ -1,0 +1,10 @@
+{
+  "id": "yeasted_sponge",
+  "type": "sponge",
+  "percentOfFlour": 30,
+  "hydration": 60,
+  "yeastPercentInPreferment": 0.3,
+  "starterPercent": 0,
+  "description": "Американский предфермент средней плотности.",
+  "comment": "Используется для сдобных и сладких изделий."
+}

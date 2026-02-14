@@ -1,0 +1,10 @@
+{
+  "id": "levain",
+  "type": "levain",
+  "percentOfFlour": 20,
+  "hydration": 75,
+  "yeastPercentInPreferment": 0,
+  "starterPercent": 20,
+  "description": "Заквасочный предфермент.",
+  "comment": "Даёт кислотность, аромат и длительную ферментацию."
+}

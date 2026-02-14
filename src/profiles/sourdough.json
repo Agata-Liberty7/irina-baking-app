@@ -2,8 +2,10 @@
   "id": "sourdough",
   "name": "Хлеб на закваске",
   "category": "bread",
+  "subtype": "sourdough",
+  "prefermentId": "levain",
 
-  "defaults": {
+  "base": {
     "flour": 1000,
     "hydration": 75,
     "salt": 2,
@@ -43,15 +45,6 @@
     "manual": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "" },
     "planetary": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "" },
     "spiral": { "hydrationDelta": 2, "yeastPercentDelta": 0, "comment": "" }
-  },
-
-  "preferment": {
-    "enabled": true,
-    "type": "levain",
-    "percentOfFlour": 20,
-    "hydration": 100,
-    "yeastPercentInPreferment": 0,
-    "comment": ""
   },
 
   "schedule": {

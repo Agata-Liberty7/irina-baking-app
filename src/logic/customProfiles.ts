@@ -1,4 +1,7 @@
-import type { Profile } from "./profileLoader";
+//import type { Profile } from "./profileLoader";
+
+type Profile = any;
+
 
 const STORAGE_KEY = "customProfiles";
 

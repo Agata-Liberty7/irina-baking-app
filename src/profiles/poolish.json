@@ -1,0 +1,10 @@
+{
+  "id": "poolish",
+  "type": "poolish",
+  "percentOfFlour": 30,
+  "hydration": 100,
+  "yeastPercentInPreferment": 0.2,
+  "starterPercent": 0,
+  "description": "Жидкий предфермент с равными частями воды и муки.",
+  "comment": "Даёт аромат, пористость и мягкость."
+}

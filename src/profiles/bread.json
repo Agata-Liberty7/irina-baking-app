@@ -2,18 +2,17 @@
   "id": "bread",
   "name": "Хлеб",
   "category": "bread",
+  "subtype": "base_bread",
+  "prefermentId": "poolish",
 
-  "defaults": {
+  "base": {
     "flour": 1000,
     "hydration": 65,
     "salt": 2,
     "sugar": 0,
     "fat": 0,
     "eggs": 0,
-    "yeast": {
-      "type": "instant",
-      "percent": 0.7
-    }
+    "yeast": { "type": "instant", "percent": 0.7 }
   },
 
   "limits": {
@@ -55,30 +54,9 @@
   },
 
   "mixingAdjustments": {
-    "manual": {
-      "hydrationDelta": 0,
-      "yeastPercentDelta": 0,
-      "comment": "Ручной замес: стандартный режим."
-    },
-    "planetary": {
-      "hydrationDelta": 0,
-      "yeastPercentDelta": 0,
-      "comment": "Планетарный миксер: классическая интенсивность."
-    },
-    "spiral": {
-      "hydrationDelta": 2,
-      "yeastPercentDelta": -0.05,
-      "comment": "Спиральный: лучше развивает клейковину, можно повысить воду."
-    }
-  },
-
-  "preferment": {
-    "enabled": false,
-    "type": "poolish",
-    "percentOfFlour": 20,
-    "hydration": 100,
-    "yeastPercentInPreferment": 0.1,
-    "comment": "При включении — часть муки и воды уходит в опару."
+    "manual": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "Ручной замес: стандартный режим." },
+    "planetary": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "Планетарный миксер: классическая интенсивность." },
+    "spiral": { "hydrationDelta": 2, "yeastPercentDelta": -0.05, "comment": "Спиральный: лучше развивает клейковину, можно повысить воду." }
   },
 
   "schedule": {
@@ -86,40 +64,16 @@
       "totalHours": 2,
       "temperature": 24,
       "steps": [
-        {
-          "timeFromStartMinutes": 0,
-          "action": "Автолиз",
-          "comment": "Мука + вода, 20–30 минут."
-        },
-        {
-          "timeFromStartMinutes": 30,
-          "action": "Добавление соли",
-          "comment": "Замешиваем до средней клейковины."
-        },
-        {
-          "timeFromStartMinutes": 60,
-          "action": "Складка",
-          "comment": "Одна складка для укрепления структуры."
-        }
+        { "timeFromStartMinutes": 0, "action": "Автолиз", "comment": "Мука + вода, 20–30 минут." },
+        { "timeFromStartMinutes": 30, "action": "Добавление соли", "comment": "Замешиваем до средней клейковины." },
+        { "timeFromStartMinutes": 60, "action": "Складка", "comment": "Одна складка для укрепления структуры." }
       ]
     },
-    "finalProof": {
-      "totalHours": 1,
-      "temperature": 24,
-      "comment": "Ориентироваться по тесту: пальцевый тест."
-    },
-    "coldRetard": {
-      "enabled": true,
-      "hours": 12,
-      "temperature": 4,
-      "comment": "Холодная ферментация улучшает вкус и структуру."
-    }
+    "finalProof": { "totalHours": 1, "temperature": 24, "comment": "Ориентироваться по тесту: пальцевый тест." },
+    "coldRetard": { "enabled": true, "hours": 12, "temperature": 4, "comment": "Холодная ферментация улучшает вкус и структуру." }
   },
 
-  "bake": {
-    "temperature": 230,
-    "timeMinutes": 35
-  },
+  "bake": { "temperature": 230, "timeMinutes": 35 },
 
   "uiHints": {
     "flourLabel": "Мука (базовая порция)",

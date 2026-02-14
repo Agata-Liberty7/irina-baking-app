@@ -2,8 +2,10 @@
   "id": "baguette",
   "name": "Багет",
   "category": "bread",
+  "subtype": "baguette",
+  "prefermentId": "poolish",
 
-  "defaults": {
+  "base": {
     "flour": 1000,
     "hydration": 70,
     "salt": 2,
@@ -72,15 +74,6 @@
     }
   },
 
-  "preferment": {
-    "enabled": true,
-    "type": "poolish",
-    "percentOfFlour": 30,
-    "hydration": 100,
-    "yeastPercentInPreferment": 0.1,
-    "comment": "Пулеш улучшает аромат и структуру багета."
-  },
-
   "schedule": {
     "bulk": {
       "totalHours": 2.5,
@@ -135,3 +128,4 @@
     ]
   }
 }
+    

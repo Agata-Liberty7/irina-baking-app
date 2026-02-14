@@ -1,9 +1,11 @@
 {
   "id": "chebureki",
   "name": "Чебуреки",
-  "category": "fried",
+  "category": "fried_filled",
+  "subtype": "chebureki",
+  "prefermentId": "none",
 
-  "defaults": {
+  "base": {
     "flour": 1000,
     "hydration": 55,
     "salt": 1.8,
@@ -43,15 +45,6 @@
     "manual": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "" },
     "planetary": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "" },
     "spiral": { "hydrationDelta": 1, "yeastPercentDelta": 0, "comment": "" }
-  },
-
-  "preferment": {
-    "enabled": false,
-    "type": "none",
-    "percentOfFlour": 0,
-    "hydration": 0,
-    "yeastPercentInPreferment": 0,
-    "comment": ""
   },
 
   "schedule": {

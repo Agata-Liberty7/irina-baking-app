@@ -8,7 +8,7 @@ type ScheduleStep = {
 };
 
 type TechCardProps = {
-  profile: any;
+  profile: any; // нормализованный профиль
   recipe: {
     effectivePrefermentHours: number;
     fermentation: {
@@ -63,7 +63,7 @@ const TechCard: React.FC<TechCardProps> = ({ profile, recipe, onBack }) => {
         <p>Температура помещения: <strong>{roomTemp}°C</strong></p>
       </Section>
 
-      {profile.preferment?.type !== "none" && (
+      {profile.preferment.enabled && (
         <Section title="Предфермент">
           <p>Тип: <strong>{profile.preferment.type}</strong></p>
           <p>Эквивалентное время: <strong>{formatTime(effectivePrefermentHours)}</strong></p>
@@ -181,7 +181,7 @@ const TechCard: React.FC<TechCardProps> = ({ profile, recipe, onBack }) => {
   };
 
   // ------------------------------------------------------------
-  // 3. FULL MODE (как раньше, но без рецептуры)
+  // 3. FULL MODE
   // ------------------------------------------------------------
   const renderFull = () => (
     <>
@@ -199,7 +199,7 @@ const TechCard: React.FC<TechCardProps> = ({ profile, recipe, onBack }) => {
         )}
       </Section>
 
-      {profile.preferment?.type !== "none" && (
+      {profile.preferment.enabled && (
         <Section title="Предфермент">
           <p>Тип: <strong>{profile.preferment.type}</strong></p>
           <p>Эквивалентное время: <strong>{formatTime(effectivePrefermentHours)}</strong></p>

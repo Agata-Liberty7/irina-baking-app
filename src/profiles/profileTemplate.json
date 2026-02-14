@@ -1,9 +1,11 @@
 {
   "id": "template_id",
   "name": "Название профиля",
-  "category": "bread",
 
-  "defaults": {
+  "category": "bread",
+  "subtype": "generic",
+
+  "base": {
     "flour": 1000,
     "hydration": 65,
     "salt": 2,
@@ -16,41 +18,80 @@
     }
   },
 
-  "limits": {
-    "hydration": { "min": 50, "max": 85 },
+  "ranges": {
+    "hydration": { "min": 50, "max": 90 },
     "salt": { "min": 1.5, "max": 2.5 },
     "sugar": { "min": 0, "max": 40 },
     "fat": { "min": 0, "max": 40 },
     "yeastPercent": { "min": 0.1, "max": 3 }
   },
 
-  "process": {
-    "mixingIntensity": "medium",
-    "mixingTime": {
+  "prefermentId": null,
+
+  "fermentation": {
+    "targetDoughTemp": 24,
+    "bulkHours": 2,
+    "proofHours": 1.5,
+    "coldRetardHours": 0,
+
+    "schedule": {
+      "bulk": {
+        "steps": [
+          {
+            "timeFromStartMinutes": 0,
+            "action": "Автолиз",
+            "comment": "Мука + вода, без соли и жиров."
+          },
+          {
+            "timeFromStartMinutes": 30,
+            "action": "Добавление ингредиентов",
+            "comment": "Добавляем соль, сахар, жиры."
+          },
+          {
+            "timeFromStartMinutes": 60,
+            "action": "Складка",
+            "comment": "Укрепление структуры."
+          }
+        ]
+      },
+      "finalProof": {
+        "comment": "Ориентироваться по тесту: пальцевый тест."
+      }
+    }
+  },
+
+  "mixing": {
+    "intensity": "medium",
+    "glutenDevelopment": "medium",
+    "time": {
       "manual": { "min": 8, "max": 15 },
       "planetary": { "min": 5, "max": 10 },
       "spiral": { "min": 3, "max": 8 }
-    },
-    "glutenDevelopment": "medium",
-    "bulkFermentationTarget": "x2.0",
-    "finalProofTarget": "пальцевый тест"
+    }
+  },
+
+  "baking": {
+    "temperature": 230,
+    "timeMinutes": 30,
+    "steam": true,
+    "fry": false
   },
 
   "climateAdjustments": {
     "dry": {
       "hydrationDelta": 2,
       "yeastDeltaPercent": 0.05,
-      "comment": "Сухой климат: тесто быстрее сохнет, мука впитывает больше воды."
+      "comment": "Сухой климат: мука впитывает больше воды."
     },
     "moderate": {
       "hydrationDelta": 0,
       "yeastDeltaPercent": 0,
-      "comment": "Умеренный климат: используем базовые параметры."
+      "comment": "Умеренный климат: базовые параметры."
     },
     "humid": {
       "hydrationDelta": -2,
       "yeastDeltaPercent": -0.05,
-      "comment": "Влажный климат: тесто липче, мука впитывает меньше воды."
+      "comment": "Влажный климат: тесто липче."
     }
   },
 
@@ -58,17 +99,17 @@
     "manual": {
       "hydrationDelta": 0,
       "yeastPercentDelta": 0,
-      "comment": "Ручной замес: стандартный режим."
+      "comment": "Ручной замес: стандарт."
     },
     "planetary": {
       "hydrationDelta": 0,
       "yeastPercentDelta": 0,
-      "comment": "Планетарный миксер: классическая интенсивность."
+      "comment": "Планетарный: классическая интенсивность."
     },
     "spiral": {
       "hydrationDelta": 2,
       "yeastPercentDelta": -0.05,
-      "comment": "Спиральный: лучше развивает клейковину, можно повысить воду."
+      "comment": "Спиральный: лучше развивает клейковину."
     }
   },
 
@@ -76,78 +117,30 @@
     "spain": {
       "hydrationDelta": 0,
       "saltPercentDelta": 0,
-      "comment": "Испания: мука средней силы, параметры стандартные."
+      "comment": "Испания: мука средней силы."
     },
     "russia": {
       "hydrationDelta": -3,
       "saltPercentDelta": 0,
-      "comment": "Россия: мука часто слабее, уменьшаем воду."
+      "comment": "Россия: мука слабее, уменьшаем воду."
     },
     "italy": {
       "hydrationDelta": 2,
       "saltPercentDelta": 0,
-      "comment": "Италия: мука сильная, можно повысить воду."
+      "comment": "Италия: мука сильная."
     }
-  },
-
-  "preferment": {
-    "enabled": false,
-    "type": "poolish",
-    "percentOfFlour": 30,
-    "hydration": 100,
-    "yeastPercentInPreferment": 0.1,
-    "comment": "Пулеш: улучшает аромат и структуру."
-  },
-
-  "schedule": {
-    "bulk": {
-      "totalHours": 2,
-      "temperature": 24,
-      "steps": [
-        {
-          "timeFromStartMinutes": 0,
-          "action": "Автолиз",
-          "comment": "Мука + вода, без соли и жиров."
-        },
-        {
-          "timeFromStartMinutes": 30,
-          "action": "Добавление ингредиентов",
-          "comment": "Добавляем соль, сахар, жиры — замешиваем до средней клейковины."
-        },
-        {
-          "timeFromStartMinutes": 60,
-          "action": "Складка",
-          "comment": "Одна складка для укрепления структуры."
-        }
-      ]
-    },
-    "finalProof": {
-      "totalHours": 1.5,
-      "temperature": 24,
-      "comment": "Ориентироваться по тесту: пальцевый тест."
-    },
-    "coldRetard": {
-      "enabled": false,
-      "hours": 12,
-      "temperature": 4,
-      "comment": "Холодная ферментация усиливает вкус и структуру."
-    }
-  },
-
-  "bake": {
-    "temperature": 230,
-    "timeMinutes": 30
   },
 
   "uiHints": {
     "flourLabel": "Мука (базовая порция)",
-    "hydrationLabel": "Гидратация (вода % к муке)",
+    "hydrationLabel": "Гидратация",
     "notesForBaker": [
       "Температура теста после замеса: 24–26°C.",
       "Лучше недомесить, чем перемесить.",
-      "Корректируйте воду по ощущению.",
-      "Используйте пар в начале выпечки.",
-      "Не пересыпайте мукой при формовке."
+      "Корректируйте воду по ощущениям.",
+      "Используйте пар в начале выпечки."
     ]
-  }
+  },
+
+  "glossaryRefs": []
 }

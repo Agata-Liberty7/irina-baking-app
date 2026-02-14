@@ -4,6 +4,7 @@ export const defaultRecipe = {
   sugar: 0,
   fat: 0,
   eggs: 0,
+
   water: 0,
   milk: 0,
 

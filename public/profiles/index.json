@@ -1,0 +1,79 @@
+{
+  "categories": {
+    "bread": {
+      "name": "Хлеб",
+      "subtypes": {
+        "baguette": { "name": "Багет", "profile": "baguette.json" },
+        "ciabatta": { "name": "Чиабатта", "profile": "ciabatta.json" },
+        "focaccia": { "name": "Фокачча", "profile": "focaccia.json" },
+        "pita": { "name": "Пита", "profile": "pita.json" },
+        "pizza": { "name": "Пицца", "profile": "pizza.json" },
+        "sourdough": { "name": "Хлеб на закваске", "profile": "sourdough.json" },
+        "base_bread": { "name": "Базовый хлеб", "profile": "bread.json" }
+      }
+    },
+
+    "enriched": {
+      "name": "Сдобное",
+      "subtypes": {
+        "brioche": { "name": "Бриошь", "profile": "brioche.json" },
+        "roll_swirled": { "name": "Рулеты / Улитки", "profile": "cinnabon.json" },
+        "ensaimada": { "name": "Энсаймада", "profile": "ensaimada.json" },
+        "base_enriched": { "name": "Базовое сдобное", "profile": "enriched.json" }
+      }
+    },
+
+    "fried_enriched": {
+      "name": "Сдобное жареное",
+      "subtypes": {
+        "donuts": { "name": "Пончики", "profile": "donuts.json" }
+      }
+    },
+
+    "baked_filled": {
+      "name": "Печёные с начинкой",
+      "subtypes": {
+        "pirozhki": { "name": "Пирожки", "profile": "baked_pirozhki.json" },
+        "empanada": { "name": "Эмпанада", "profile": "empanada.json" }
+      }
+    },
+
+    "fried_filled": {
+      "name": "Жареные с начинкой",
+      "subtypes": {
+        "belyashi": { "name": "Беляши", "profile": "belyashi.json" },
+        "chebureki": { "name": "Чебуреки", "profile": "chebureki.json" }
+      }
+    },
+
+    "boiled_bread": {
+      "name": "Отварные",
+      "subtypes": {
+        "bagel": { "name": "Бейглы", "profile": "bagel.json" }
+      }
+    },
+
+    "pastry": {
+      "name": "Песочное и заварное",
+      "subtypes": {
+        "choux": { "name": "Заварное тесто", "profile": "choux.json" },
+        "shortcrust": { "name": "Песочное тесто", "profile": "shortcrust.json" }
+      }
+    },
+
+    "cake": {
+      "name": "Бисквит",
+      "subtypes": {
+        "sponge": { "name": "Бисквит", "profile": "sponge.json" }
+      }
+    },
+
+    "template": {
+      "name": "Шаблоны",
+      "subtypes": {
+        "profile": { "name": "Шаблон профиля", "profile": "profileTemplate.json" },
+        "preferment": { "name": "Шаблон предфермента", "profile": "prefermentTemplate.json" }
+      }
+    }
+  }
+}

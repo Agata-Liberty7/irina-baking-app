@@ -1,0 +1,11 @@
+{
+  "id": "biga",
+  "type": "biga",
+  "description": "Итальянский плотный предфермент.",
+  "comment": "Укрепляет структуру, даёт ореховый аромат.",
+
+  "percentOfFlour": 40,
+  "hydration": 50,
+  "yeastPercentInPreferment": 0.1,
+  "starterPercent": 0
+}

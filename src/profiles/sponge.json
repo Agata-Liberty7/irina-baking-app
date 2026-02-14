@@ -2,8 +2,10 @@
   "id": "sponge",
   "name": "Бисквит",
   "category": "cake",
+  "subtype": "sponge",
+  "prefermentId": "none",
 
-  "defaults": {
+  "base": {
     "flour": 1000,
     "hydration": 0,
     "salt": 0,
@@ -43,15 +45,6 @@
     "manual": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "" },
     "planetary": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "" },
     "spiral": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "" }
-  },
-
-  "preferment": {
-    "enabled": false,
-    "type": "none",
-    "percentOfFlour": 0,
-    "hydration": 0,
-    "yeastPercentInPreferment": 0,
-    "comment": ""
   },
 
   "schedule": {

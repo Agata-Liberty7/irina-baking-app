@@ -2,18 +2,17 @@
   "id": "pita",
   "name": "Пита",
   "category": "bread",
+  "subtype": "pita",
+  "prefermentId": "none",
 
-  "defaults": {
+  "base": {
     "flour": 1000,
     "hydration": 60,
     "salt": 2,
     "sugar": 1,
     "fat": 1,
     "eggs": 0,
-    "yeast": {
-      "type": "instant",
-      "percent": 1
-    }
+    "yeast": { "type": "instant", "percent": 1 }
   },
 
   "limits": {
@@ -37,48 +36,15 @@
   },
 
   "climateAdjustments": {
-    "dry": {
-      "hydrationDelta": 2,
-      "yeastDeltaPercent": 0.05,
-      "comment": "Сухой климат: тесто быстро сохнет."
-    },
-    "moderate": {
-      "hydrationDelta": 0,
-      "yeastDeltaPercent": 0,
-      "comment": "Умеренный климат: стандартные параметры."
-    },
-    "humid": {
-      "hydrationDelta": -2,
-      "yeastDeltaPercent": -0.05,
-      "comment": "Влажный климат: тесто липче."
-    }
+    "dry": { "hydrationDelta": 2, "yeastDeltaPercent": 0.05, "comment": "Сухой климат: тесто быстро сохнет." },
+    "moderate": { "hydrationDelta": 0, "yeastDeltaPercent": 0, "comment": "Умеренный климат: стандартные параметры." },
+    "humid": { "hydrationDelta": -2, "yeastDeltaPercent": -0.05, "comment": "Влажный климат: тесто липче." }
   },
 
   "mixingAdjustments": {
-    "manual": {
-      "hydrationDelta": 0,
-      "yeastPercentDelta": 0,
-      "comment": "Ручной замес подходит."
-    },
-    "planetary": {
-      "hydrationDelta": 0,
-      "yeastPercentDelta": 0,
-      "comment": "Планетарный — оптимально."
-    },
-    "spiral": {
-      "hydrationDelta": 1,
-      "yeastPercentDelta": -0.05,
-      "comment": "Спиральный быстро развивает клейковину."
-    }
-  },
-
-  "preferment": {
-    "enabled": false,
-    "type": "none",
-    "percentOfFlour": 0,
-    "hydration": 0,
-    "yeastPercentInPreferment": 0,
-    "comment": "Пита обычно без опары."
+    "manual": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "Ручной замес подходит." },
+    "planetary": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "Планетарный — оптимально." },
+    "spiral": { "hydrationDelta": 1, "yeastPercentDelta": -0.05, "comment": "Спиральный быстро развивает клейковину." }
   },
 
   "schedule": {
@@ -86,16 +52,8 @@
       "totalHours": 1,
       "temperature": 26,
       "steps": [
-        {
-          "timeFromStartMinutes": 0,
-          "action": "Автолиз",
-          "comment": "10–20 минут."
-        },
-        {
-          "timeFromStartMinutes": 20,
-          "action": "Добавление соли и сахара",
-          "comment": "Замешиваем до средней клейковины."
-        }
+        { "timeFromStartMinutes": 0, "action": "Автолиз", "comment": "10–20 минут." },
+        { "timeFromStartMinutes": 20, "action": "Добавление соли и сахара", "comment": "Замешиваем до средней клейковины." }
       ]
     },
     "finalProof": {
@@ -103,18 +61,10 @@
       "temperature": 26,
       "comment": "Короткая расстойка — иначе не будет кармана."
     },
-    "coldRetard": {
-      "enabled": false,
-      "hours": 0,
-      "temperature": 4,
-      "comment": ""
-    }
+    "coldRetard": { "enabled": false, "hours": 0, "temperature": 4, "comment": "" }
   },
 
-  "bake": {
-    "temperature": 260,
-    "timeMinutes": 6
-  },
+  "bake": { "temperature": 260, "timeMinutes": 6 },
 
   "uiHints": {
     "flourLabel": "Мука (базовая порция)",

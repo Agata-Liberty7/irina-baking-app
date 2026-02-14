@@ -2,18 +2,17 @@
   "id": "pizza",
   "name": "Пицца",
   "category": "bread",
+  "subtype": "pizza",
+  "prefermentId": "poolish",
 
-  "defaults": {
+  "base": {
     "flour": 1000,
     "hydration": 65,
     "salt": 2.5,
     "sugar": 0,
     "fat": 3,
     "eggs": 0,
-    "yeast": {
-      "type": "instant",
-      "percent": 0.4
-    }
+    "yeast": { "type": "instant", "percent": 0.4 }
   },
 
   "limits": {
@@ -37,87 +36,24 @@
   },
 
   "climateAdjustments": {
-    "dry": {
-      "hydrationDelta": 2,
-      "yeastDeltaPercent": 0.05,
-      "comment": "Сухой климат: тесто быстрее сохнет, добавляем воду."
-    },
-    "moderate": {
-      "hydrationDelta": 0,
-      "yeastDeltaPercent": 0,
-      "comment": "Умеренный климат: базовые параметры."
-    },
-    "humid": {
-      "hydrationDelta": -2,
-      "yeastDeltaPercent": -0.05,
-      "comment": "Влажный климат: мука впитывает меньше воды."
-    }
+    "dry": { "hydrationDelta": 2, "yeastDeltaPercent": 0.05, "comment": "Сухой климат: тесто быстрее сохнет, добавляем воду." },
+    "moderate": { "hydrationDelta": 0, "yeastDeltaPercent": 0, "comment": "Умеренный климат: базовые параметры." },
+    "humid": { "hydrationDelta": -2, "yeastDeltaPercent": -0.05, "comment": "Влажный климат: мука впитывает меньше воды." }
   },
 
   "regionAdjustments": {
-    "spain": {
-      "flourType": "W260–300",
-      "hydrationDelta": 0,
-      "saltPercentDelta": 0
-    },
-    "russia": {
-      "flourType": "средняя сила",
-      "hydrationDelta": -3,
-      "saltPercentDelta": 0.2,
-      "comment": "Российская мука часто держит меньше воды."
-    },
-    "italy": {
-      "flourType": "W300–330",
-      "hydrationDelta": 2,
-      "saltPercentDelta": 0,
-      "comment": "Итальянская мука сильнее, держит больше воды."
-    },
-    "france": {
-      "flourType": "T65",
-      "hydrationDelta": -1,
-      "saltPercentDelta": 0
-    },
-    "germany": {
-      "flourType": "550",
-      "hydrationDelta": -1,
-      "saltPercentDelta": 0
-    },
-    "usa": {
-      "flourType": "bread flour",
-      "hydrationDelta": 1,
-      "saltPercentDelta": 0
-    }
+    "spain": { "flourType": "W260–300", "hydrationDelta": 0, "saltPercentDelta": 0 },
+    "russia": { "flourType": "средняя сила", "hydrationDelta": -3, "saltPercentDelta": 0.2, "comment": "Российская мука часто держит меньше воды." },
+    "italy": { "flourType": "W300–330", "hydrationDelta": 2, "saltPercentDelta": 0, "comment": "Итальянская мука сильнее, держит больше воды." },
+    "france": { "flourType": "T65", "hydrationDelta": -1, "saltPercentDelta": 0 },
+    "germany": { "flourType": "550", "hydrationDelta": -1, "saltPercentDelta": 0 },
+    "usa": { "flourType": "bread flour", "hydrationDelta": 1, "saltPercentDelta": 0 }
   },
 
   "mixingAdjustments": {
-    "manual": {
-      "hydrationDelta": 0,
-      "yeastPercentDelta": 0,
-      "comment": "Ручной замес: классический, без поправок."
-    },
-    "planetary": {
-      "hydrationDelta": 0,
-      "yeastPercentDelta": 0,
-      "comment": "Планетарный миксер: стандартный режим."
-    },
-    "spiral": {
-      "hydrationDelta": 2,
-      "yeastPercentDelta": -0.05,
-      "comment": "Спиральный: лучше развивает клейковину, можно повысить воду."
-    }
-  },
-  "bake": {
-    "temperature": 250,
-    "timeMinutes": 7
-  },
-
-  "preferment": {
-    "enabled": false,
-    "type": "poolish",
-    "percentOfFlour": 30,
-    "hydration": 100,
-    "yeastPercentInPreferment": 0.1,
-    "comment": "Если включено — часть муки и воды уходит в опару."
+    "manual": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "Ручной замес: классический, без поправок." },
+    "planetary": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "Планетарный миксер: стандартный режим." },
+    "spiral": { "hydrationDelta": 2, "yeastPercentDelta": -0.05, "comment": "Спиральный: лучше развивает клейковину, можно повысить воду." }
   },
 
   "schedule": {
@@ -125,35 +61,16 @@
       "totalHours": 2,
       "temperature": 24,
       "steps": [
-        {
-          "timeFromStartMinutes": 0,
-          "action": "Автолиз",
-          "comment": "Мука + вода, 20–30 минут."
-        },
-        {
-          "timeFromStartMinutes": 30,
-          "action": "Добавление соли и масла",
-          "comment": "Вмешиваем до средней клейковины."
-        },
-        {
-          "timeFromStartMinutes": 60,
-          "action": "Складка",
-          "comment": "Одна складка для укрепления структуры."
-        }
+        { "timeFromStartMinutes": 0, "action": "Автолиз", "comment": "Мука + вода, 20–30 минут." },
+        { "timeFromStartMinutes": 30, "action": "Добавление соли и масла", "comment": "Вмешиваем до средней клейковины." },
+        { "timeFromStartMinutes": 60, "action": "Складка", "comment": "Одна складка для укрепления структуры." }
       ]
     },
-    "finalProof": {
-      "totalHours": 1.5,
-      "temperature": 24,
-      "comment": "Ориентироваться по тесту, а не по времени."
-    },
-    "coldRetard": {
-      "enabled": true,
-      "hours": 12,
-      "temperature": 4,
-      "comment": "Ночное брожение в холодильнике улучшает вкус."
-    }
+    "finalProof": { "totalHours": 1.5, "temperature": 24, "comment": "Ориентироваться по тесту, а не по времени." },
+    "coldRetard": { "enabled": true, "hours": 12, "temperature": 4, "comment": "Ночное брожение в холодильнике улучшает вкус." }
   },
+
+  "bake": { "temperature": 250, "timeMinutes": 7 },
 
   "uiHints": {
     "flourLabel": "Мука (базовая порция)",

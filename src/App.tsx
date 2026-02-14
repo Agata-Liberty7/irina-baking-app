@@ -34,7 +34,6 @@ function App() {
     timestamp: number;
   };
 
-
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any | null>(null);
   const [recipeData, setRecipeData] = useState<any | null>(null);
@@ -46,9 +45,12 @@ function App() {
     return JSON.parse(localStorage.getItem("customRecipes") || "[]");
   });
 
-
   const [selectedCustomRecipeId, setSelectedCustomRecipeId] = useState<string | null>(null);
+  
 
+  // ------------------------------------------------------------
+  // 1. Открытие кастомного рецепта
+  // ------------------------------------------------------------
   const handleOpenCustomRecipe = (id: string) => {
     setSelectedCustomRecipeId(id);
   };
@@ -59,14 +61,44 @@ function App() {
     setCustomRecipes(updated);
   };
 
-  const handleProfileSelect = (profileId: string) => {
-    const loaded = loadProfile(profileId, climate, mixing);
+  // ------------------------------------------------------------
+  // 2. Выбор профиля
+  // ------------------------------------------------------------
+const handleProfileSelect = (profileId: string) => { 
+  console.log("→ клик по профилю:", profileId); 
+  
+    const loaded = loadProfile(profileId, climate, mixing, {
+      productionMode,
+      coldHours: coldFermentationHours,
+      warmHours: warmFermentationHours,
+      flourType: "normal",   // временно, пока не добавим выбор
+      yeastForm: "instant",  // временно
+    });
+
 
     setSelectedProfile(profileId);
     setProfileData(loaded);
-    setRecipeData(loaded.defaults);
+
+    // Инициализация RecipeInput из profile.base + profile.preferment
+    setRecipeData({
+      flour: loaded.base.flour ?? 1000,
+      hydration: loaded.base.hydration,          // ← вот это
+      salt: loaded.base.salt,
+      sugar: loaded.base.sugar,
+      fat: loaded.base.fat,
+      eggs: loaded.base.eggs,
+
+      prefermentType: loaded.preferment.type ?? loaded.defaultPrefermentType,
+      prefermentFlourPct: loaded.preferment.percentOfFlour,
+      prefermentHydrationPct: loaded.preferment.hydration,
+      prefermentYeastPct: loaded.preferment.yeastPercentInPreferment,
+    });
+
   };
 
+  // ------------------------------------------------------------
+  // 3. Сохранение кастомного рецепта
+  // ------------------------------------------------------------
   const handleSaveAsCustom = (calculatedRecipe: any) => {
     if (!profileData || !calculatedRecipe) return;
 
@@ -76,7 +108,7 @@ function App() {
     const newRecipe = {
       id: crypto.randomUUID(),
       name,
-      recipe: calculatedRecipe, // ← теперь это готовый расчёт
+      recipe: calculatedRecipe,
       profile: profileData,
       conditions: {
         climate,
@@ -94,12 +126,31 @@ function App() {
     setCustomRecipes(updated);
   };
 
-
+  // ------------------------------------------------------------
+  // 4. Возврат к RecipeInput после RecipeOutput
+  // ------------------------------------------------------------
   const handleBackToInput = () => {
     if (!profileData) return;
-    setRecipeData(profileData.defaults);
+
+    setRecipeData({
+      flour: profileData.base.flour ?? 1000,
+      hydration: profileData.base.hydration,     // ← вот это
+      salt: profileData.base.salt,
+      sugar: profileData.base.sugar,
+      fat: profileData.base.fat,
+      eggs: profileData.base.eggs,
+
+      prefermentType: profileData.preferment.type ?? profileData.defaultPrefermentType,
+      prefermentFlourPct: profileData.preferment.percentOfFlour,
+      prefermentHydrationPct: profileData.preferment.hydration,
+      prefermentYeastPct: profileData.preferment.yeastPercentInPreferment,
+    });
+
   };
 
+  // ------------------------------------------------------------
+  // 5. Полный сброс
+  // ------------------------------------------------------------
   const handleRestart = () => {
     setSelectedProfile(null);
     setProfileData(null);
@@ -108,6 +159,9 @@ function App() {
     setSelectedCustomRecipeId(null);
   };
 
+  // ------------------------------------------------------------
+  // 6. Техкарта
+  // ------------------------------------------------------------
   const handleShowTechCard = (recipe: any) => {
     setTechData(recipe);
     setShowTechCard(true);
@@ -117,13 +171,16 @@ function App() {
     setShowTechCard(false);
   };
 
+  // ------------------------------------------------------------
+  // 7. Расчёт рецепта
+  // ------------------------------------------------------------
   const handleCalculate = (data: any) => {
     setRecipeData({ ...data, _calculated: true });
   };
 
-  //
+  // ------------------------------------------------------------
   // === ЭКРАНЫ ===
-  //
+  // ------------------------------------------------------------
 
   if (showTechCard && techData && profileData) {
     return (
@@ -179,6 +236,7 @@ function App() {
       />
     );
   }
+  console.log("App рендерит StartScreen");
 
   return (
     <StartScreen

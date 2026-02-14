@@ -1,0 +1,10 @@
+{
+  "id": "none",
+  "type": "none",
+  "percentOfFlour": 0,
+  "hydration": 0,
+  "yeastPercentInPreferment": 0,
+  "starterPercent": 0,
+  "description": "Без предфермента.",
+  "comment": "Тесто замешивается прямым способом."
+}

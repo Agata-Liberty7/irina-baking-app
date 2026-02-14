@@ -2,8 +2,10 @@
   "id": "shortcrust",
   "name": "Песочное тесто",
   "category": "pastry",
+  "subtype": "shortcrust",
+  "prefermentId": "none",
 
-  "defaults": {
+  "base": {
     "flour": 1000,
     "hydration": 0,
     "salt": 1,
@@ -45,24 +47,10 @@
     "spiral": { "hydrationDelta": 0, "yeastPercentDelta": 0, "comment": "" }
   },
 
-  "preferment": {
-    "enabled": false,
-    "type": "none",
-    "percentOfFlour": 0,
-    "hydration": 0,
-    "yeastPercentInPreferment": 0,
-    "comment": ""
-  },
-
   "schedule": {
     "bulk": { "totalHours": 0, "temperature": 24, "steps": [] },
     "finalProof": { "totalHours": 0, "temperature": 24, "comment": "" },
-    "coldRetard": {
-      "enabled": true,
-      "hours": 1,
-      "temperature": 4,
-      "comment": "Охлаждение перед раскаткой."
-    }
+    "coldRetard": { "enabled": true, "hours": 1, "temperature": 4, "comment": "Охлаждение перед раскаткой." }
   },
 
   "bake": { "temperature": 180, "timeMinutes": 15 },

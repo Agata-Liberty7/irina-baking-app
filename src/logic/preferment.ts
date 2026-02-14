@@ -51,12 +51,10 @@ export function calculatePreferment(input: PrefermentInput) {
     profile,
   } = input;
 
-  // ------------------------------------------------------
-  // 1. Если предфермента нет
-  // ------------------------------------------------------
   if (prefermentType === "none" || prefermentFlourPct <= 0) {
     return {
       preferment: {
+        type: "none",
         flour: 0,
         water: 0,
         milk: 0,
@@ -71,7 +69,6 @@ export function calculatePreferment(input: PrefermentInput) {
         milk,
         eggs,
         yeast: totalYeast,
-
         salt,
         sugar,
         fat,
@@ -81,60 +78,38 @@ export function calculatePreferment(input: PrefermentInput) {
     };
   }
 
-  // ------------------------------------------------------
-  // 2. Мука в предферменте
-  // ------------------------------------------------------
   const prefermentFlour = Math.round((flour * prefermentFlourPct) / 100);
-
-  // ------------------------------------------------------
-  // 3. Вода в предферменте
-  // ------------------------------------------------------
   const prefermentWater = Math.round(
     (prefermentFlour * prefermentHydrationPct) / 100
   );
-
-  // ------------------------------------------------------
-  // 4. Дрожжи в предферменте
-  // ------------------------------------------------------
   const prefermentYeast = Math.round(
     (totalYeast * prefermentYeastPct) / 100
   );
 
-  // ------------------------------------------------------
-  // 5. Остатки для основного теста
-  // ------------------------------------------------------
   const finalFlour = flour - prefermentFlour;
   const finalWater = water - prefermentWater;
   const finalYeast = totalYeast - prefermentYeast;
 
-  // Молоко, яйца, соль, сахар, жиры — всегда в основное тесто
-  const finalMilk = milk;
-  const finalEggs = eggs;
-
-  // ------------------------------------------------------
-  // 6. Гидратация предфермента
-  // ------------------------------------------------------
   const prefermentHydration = Math.round(
     (prefermentWater / prefermentFlour) * 100
   );
 
-  // ------------------------------------------------------
-  // 7. Влияние предфермента на ферментацию
-  // ------------------------------------------------------
-  const coldFactor = profile.isEnriched ? 0.33 : 0.25;
+  let coldFactor = 0.25;
+  if (profile.isEnriched) coldFactor = 0.33;
+  if (profile.isSourdough) coldFactor = 0.50;
+  if (profile.isFried) coldFactor = 0.20;
+  if (profile.isPastry) coldFactor = 0;
+  if (profile.isBoiled) coldFactor = 0.25;
 
   const effectiveHours =
     warmFermentationHours + coldFermentationHours * coldFactor;
 
-  const prefermentStrength = prefermentFlourPct / 100;
+  const effectivePrefermentHours =
+    effectiveHours * (prefermentFlourPct / 100);
 
-  const effectivePrefermentHours = effectiveHours * prefermentStrength;
-
-  // ------------------------------------------------------
-  // 8. Возвращаем полный состав
-  // ------------------------------------------------------
   return {
     preferment: {
+      type: prefermentType,
       flour: prefermentFlour,
       water: prefermentWater,
       milk: 0,
@@ -146,10 +121,9 @@ export function calculatePreferment(input: PrefermentInput) {
     finalDough: {
       flour: finalFlour,
       water: finalWater,
-      milk: finalMilk,
-      eggs: finalEggs,
+      milk,
+      eggs,
       yeast: finalYeast,
-
       salt,
       sugar,
       fat,

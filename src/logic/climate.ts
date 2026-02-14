@@ -1,7 +1,7 @@
 export const climateAdjustments = {
   dry: {
-    hydrationDelta: 2,
-    yeastDeltaPercent: 0.05,
+    hydrationDelta: 3,
+    yeastDeltaPercent: 0.2,
     comment: "Сухой климат: мука впитывает больше воды."
   },
   moderate: {
@@ -10,8 +10,8 @@ export const climateAdjustments = {
     comment: "Умеренный климат: базовые параметры."
   },
   humid: {
-    hydrationDelta: -2,
-    yeastDeltaPercent: -0.05,
+    hydrationDelta: -3,
+    yeastDeltaPercent: -0.2,
     comment: "Влажный климат: тесто липче."
   }
 };

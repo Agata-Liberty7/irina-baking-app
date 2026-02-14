@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState } from "react";
-import type { ReactNode } from "react"; 
+import { createContext, useContext, useState } from "react";
+import type { ReactNode } from "react";
 
 export type Climate = "dry" | "moderate" | "humid";
 export type MixingMethod = "manual" | "planetary" | "spiral";
-export type ProductionMode = "home" | "pro";
+export type ProductionMode = "home" | "professional";
 
 type AppContextType = {
   climate: Climate;
@@ -42,7 +42,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const [roomTemp, setRoomTemp] = useState<number>(24);
 
-  // Новые параметры
   const [warmFermentationHours, setWarmFermentationHours] = useState<number>(1);
   const [coldFermentationHours, setColdFermentationHours] = useState<number>(0);
 

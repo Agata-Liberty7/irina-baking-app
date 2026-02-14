@@ -15,8 +15,6 @@ type RecipeOutputProps = {
     sugar: number;
     fat: number;
     eggs: number;
-    water?: number;
-    milk?: number;
 
     prefermentType: PrefermentType;
     prefermentFlourPct: number;
@@ -98,8 +96,8 @@ const RecipeOutput: React.FC<RecipeOutputProps> = ({
   // -----------------------------
   const pref = calculatePreferment({
     flour: data.flour,
-    water: data.water || 0,
-    milk: data.milk || 0,
+    water: 0, // вода всегда пересчитывается позже
+    milk: profile.base.milk || 0,
     eggs: data.eggs,
 
     salt: data.salt,
@@ -192,9 +190,9 @@ const RecipeOutput: React.FC<RecipeOutputProps> = ({
       <h1 style={{ marginBottom: "24px" }}>Рецепт: {profileId}</h1>
 
       {/* -------------------------------------------------- */}
-      {/* ПРЕДФЕРМЕНТ */}
+      {/* ПРЕДФЕРМЕНТ (ТОЛЬКО ЕСЛИ ПРОФИЛЬ ЕГО ИСПОЛЬЗУЕТ) */}
       {/* -------------------------------------------------- */}
-      {data.prefermentType !== "none" && (
+      {profile.preferment.enabled && data.prefermentType !== "none" && (
         <Section title={`Предфермент (${data.prefermentType})`}>
           <Table
             rows={[

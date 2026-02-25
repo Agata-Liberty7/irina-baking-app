@@ -2,6 +2,15 @@ import React from "react";
 import NumberInput from "../components/NumberInput";
 import type { PrefermentType } from "../logic/preferment";
 
+import type {
+  FlourType,
+  LiquidType,
+  FatType,
+  EggType,
+  SugarType,
+  YeastForm,
+} from "../logic/fermentationModel";
+
 type RecipeInputProps = {
   profileId: string;
   profile: any;
@@ -19,6 +28,34 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
     {children}
   </section>
 );
+
+const FLOUR_TYPES: FlourType[] = [
+  "normal",
+  "strong",
+  "integral",
+  "rye",
+  "buckwheat",
+  "corn",
+  "rice",
+  "oat",
+  "flax",
+];
+
+const LIQUID_TYPES: LiquidType[] = [
+  "water",
+  "milk",
+  "kefir",
+  "whey",
+  "plant_milk",
+];
+
+const FAT_TYPES: FatType[] = ["butter", "oil", "ghee", "margarine"];
+
+const EGG_TYPES: EggType[] = ["whole", "yolk", "white", "powder"];
+
+const SUGAR_TYPES: SugarType[] = ["white", "brown", "panela"];
+
+const YEAST_FORMS: YeastForm[] = ["instant", "fresh"];
 
 const RecipeInput: React.FC<RecipeInputProps> = ({
   profileId,
@@ -39,11 +76,33 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
   const [fat, setFat] = React.useState(initialValues.fat);
   const [eggs, setEggs] = React.useState(initialValues.eggs);
 
-  const [hydration] = React.useState(initialValues.hydration);
+  // 🔥 ДОБАВЛЕНО: ГИДРАТАЦИЯ
+  const [hydration, setHydration] = React.useState(
+    initialValues.hydration ?? profile.hydration ?? 60
+  );
+
+  // 🔥 ДОБАВЛЕНО: ДРОЖЖИ (%)
+  const [yeastPct, setYeastPct] = React.useState(
+    initialValues.yeastPct ?? profile.yeast?.percent ?? 1
+  );
+
+  // === НОВЫЕ ПАРАМЕТРЫ: МУКА ===
+  const [mainFlour, setMainFlour] = React.useState<FlourType>("normal");
+
+  const [extraFlour1, setExtraFlour1] = React.useState<FlourType>("normal");
+  const [extraPct1, setExtraPct1] = React.useState(0);
+
+  const [extraFlour2, setExtraFlour2] = React.useState<FlourType>("normal");
+  const [extraPct2, setExtraPct2] = React.useState(0);
+
+  // === НОВЫЕ ПАРАМЕТРЫ: ЖИДКОСТИ / ЖИРЫ / ЯЙЦА / САХАР / ДРОЖЖИ ===
+  const [liquidType, setLiquidType] = React.useState<LiquidType>("water");
+  const [fatType, setFatType] = React.useState<FatType>("butter");
+  const [eggType, setEggType] = React.useState<EggType>("whole");
+  const [sugarType, setSugarType] = React.useState<SugarType>("white");
+  const [yeastForm, setYeastForm] = React.useState<YeastForm>("instant");
 
   // === ПРЕДФЕРМЕНТ ===
-  const prefermentEnabled = true; // теперь всегда можно выбрать, если профиль поддерживает
-
   const [prefermentType, setPrefermentType] = React.useState<PrefermentType>(
     initialValues.prefermentType || profile.preferment?.type || "none"
   );
@@ -65,6 +124,20 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       profile.preferment?.yeastPercentInPreferment ??
       0
   );
+
+  // === НОРМАЛИЗАЦИЯ ПРОЦЕНТОВ ДОП. МУКИ ===
+  const normalizeExtraFlours = () => {
+    const total = extraPct1 + extraPct2;
+    if (total <= 100) return;
+
+    const k = 100 / total;
+    setExtraPct1(Math.round(extraPct1 * k));
+    setExtraPct2(Math.round(extraPct2 * k));
+  };
+
+  React.useEffect(() => {
+    normalizeExtraFlours();
+  }, [extraPct1, extraPct2]);
 
   // === SUBMIT ===
   const handleSubmit = () => {
@@ -91,6 +164,19 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       sugar,
       fat,
       eggs,
+      yeastPct,
+
+      mainFlour,
+      extraFlour1,
+      extraPct1,
+      extraFlour2,
+      extraPct2,
+
+      liquidType,
+      fatType,
+      eggType,
+      sugarType,
+      yeastForm,
 
       prefermentType,
       prefermentFlourPct,
@@ -133,6 +219,87 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       </Section>
 
       {/* -------------------------------------------------- */}
+      {/* ГИДРАТАЦИЯ И ДРОЖЖИ */}
+      {/* -------------------------------------------------- */}
+      <Section title="Вода и дрожжи">
+        <NumberInput
+          label="Гидратация (%)"
+          value={hydration}
+          onChange={setHydration}
+        />
+
+        <NumberInput
+          label="Дрожжи (% от муки)"
+          value={yeastPct}
+          onChange={setYeastPct}
+        />
+      </Section>
+
+      {/* -------------------------------------------------- */}
+      {/* МУКА */}
+      {/* -------------------------------------------------- */}
+      <Section title="Типы муки">
+        <div style={{ display: "grid", gap: "16px" }}>
+          <label>
+            Основная мука:
+            <select
+              value={mainFlour}
+              onChange={(e) => setMainFlour(e.target.value as FlourType)}
+              style={{ marginLeft: "8px", padding: "6px" }}
+            >
+              {FLOUR_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Дополнительная мука 1:
+            <select
+              value={extraFlour1}
+              onChange={(e) => setExtraFlour1(e.target.value as FlourType)}
+              style={{ marginLeft: "8px", padding: "6px" }}
+            >
+              {FLOUR_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <NumberInput
+            label="Процент доп. муки 1 (% от общей муки)"
+            value={extraPct1}
+            onChange={setExtraPct1}
+          />
+
+          <label>
+            Дополнительная мука 2:
+            <select
+              value={extraFlour2}
+              onChange={(e) => setExtraFlour2(e.target.value as FlourType)}
+              style={{ marginLeft: "8px", padding: "6px" }}
+            >
+              {FLOUR_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <NumberInput
+            label="Процент доп. муки 2 (% от общей муки)"
+            value={extraPct2}
+            onChange={setExtraPct2}
+          />
+        </div>
+      </Section>
+
+      {/* -------------------------------------------------- */}
       {/* ОСНОВНЫЕ ИНГРЕДИЕНТЫ */}
       {/* -------------------------------------------------- */}
       <Section title="Основные ингредиенты">
@@ -155,7 +322,89 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       </Section>
 
       {/* -------------------------------------------------- */}
-      {/* ПРЕДФЕРМЕНТ — ВСЕГДА ДОСТУПЕН */}
+      {/* ТИПЫ ИНГРЕДИЕНТОВ */}
+      {/* -------------------------------------------------- */}
+      <Section title="Типы ингредиентов">
+        <div style={{ display: "grid", gap: "16px" }}>
+          <label>
+            Жидкость:
+            <select
+              value={liquidType}
+              onChange={(e) => setLiquidType(e.target.value as LiquidType)}
+              style={{ marginLeft: "8px", padding: "6px" }}
+            >
+              {LIQUID_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Жир:
+            <select
+              value={fatType}
+              onChange={(e) => setFatType(e.target.value as FatType)}
+              style={{ marginLeft: "8px", padding: "6px" }}
+            >
+              {FAT_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Тип яйца:
+            <select
+              value={eggType}
+              onChange={(e) => setEggType(e.target.value as EggType)}
+              style={{ marginLeft: "8px", padding: "6px" }}
+            >
+              {EGG_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Тип сахара:
+            <select
+              value={sugarType}
+              onChange={(e) => setSugarType(e.target.value as SugarType)}
+              style={{ marginLeft: "8px", padding: "6px" }}
+            >
+              {SUGAR_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Тип дрожжей:
+            <select
+              value={yeastForm}
+              onChange={(e) => setYeastForm(e.target.value as YeastForm)}
+              style={{ marginLeft: "8px", padding: "6px" }}
+            >
+              {YEAST_FORMS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </Section>
+
+      {/* -------------------------------------------------- */}
+      {/* ПРЕДФЕРМЕНТ */}
       {/* -------------------------------------------------- */}
       <Section title="Предфермент">
         <label style={{ display: "block", marginBottom: "12px" }}>

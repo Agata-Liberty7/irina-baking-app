@@ -8,6 +8,10 @@ import TechCard from "./screens/TechCard";
 import CustomRecipeView from "./screens/CustomRecipeView";
 
 import { loadProfile } from "./logic/profileLoader";
+import {
+  computeHydration,
+  computeYeastPercent,
+} from "./logic/fermentationModel";
 
 function App() {
   const {
@@ -172,11 +176,137 @@ const handleProfileSelect = (profileId: string) => {
   };
 
   // ------------------------------------------------------------
-  // 7. Расчёт рецепта
+  // 7. Расчёт рецепта (НОВАЯ ПОЛНАЯ ВЕРСИЯ)
   // ------------------------------------------------------------
   const handleCalculate = (data: any) => {
-    setRecipeData({ ...data, _calculated: true });
+    if (!profileData) return;
+
+    const {
+      flour,
+      hydration,
+      salt,
+      sugar,
+      fat,
+      eggs,
+      yeastPct,
+
+      mainFlour,
+      extraFlour1,
+      extraPct1,
+      extraFlour2,
+      extraPct2,
+
+      liquidType,
+      fatType,
+      eggType,
+      sugarType,
+      yeastForm,
+
+      prefermentType,
+      prefermentFlourPct,
+      prefermentHydrationPct,
+      prefermentYeastPct,
+    } = data;
+
+    const LIQUID_WATER_CONTENT: Record<string, number> = {
+      water: 1.00,
+      milk: 0.87,
+      kefir: 0.88,
+      whey: 0.93,
+      plant_milk: 0.90,
+    };
+
+    const targetMoisture = (flour * hydration) / 100;
+    const liquid = Math.round(targetMoisture / LIQUID_WATER_CONTENT[liquidType]);
+
+    const saltGr = Math.round((flour * salt) / 100);
+    const sugarGr = Math.round((flour * sugar) / 100);
+    const fatGr = Math.round((flour * fat) / 100);
+    const EGG_WEIGHTS = {
+      whole: 50,
+      yolk: 18,
+      white: 32,
+      powder: 50, // условно
+    };
+
+    const eggsGr = eggs * EGG_WEIGHTS[eggType as keyof typeof EGG_WEIGHTS];
+
+    const YEAST_MULTIPLIER = {
+      instant: 1,
+      fresh: 3,
+    };
+
+    const yeast = Math.round( (flour * yeastPct) / 100 * YEAST_MULTIPLIER[yeastForm as keyof typeof YEAST_MULTIPLIER] );
+
+    const prefFlour = Math.round((flour * prefermentFlourPct) / 100);
+
+    const prefLiquid = Math.round(
+      (prefFlour * prefermentHydrationPct) /
+        (100 * LIQUID_WATER_CONTENT[liquidType])
+    );
+
+    const prefYeast = Math.round((yeast * prefermentYeastPct) / 100);
+
+    const prefermentTotal = prefFlour + prefLiquid + prefYeast;
+
+    const finalFlour = flour - prefFlour;
+    const finalLiquid = liquid - prefLiquid;
+    const finalYeast = yeast - prefYeast;
+
+    const finalDough =
+      finalFlour +
+      finalLiquid +
+      saltGr +
+      sugarGr +
+      fatGr +
+      eggsGr +
+      finalYeast;
+
+    const totalDough = finalDough + prefermentTotal;
+
+    const calculated = {
+      flour,
+      liquid,
+      liquidType,
+
+      salt: saltGr,
+      sugar: sugarGr,
+      fat: fatGr,
+      eggs,
+      yeast,
+      hydration,
+
+      mainFlour,
+      extraFlour1,
+      extraPct1,
+      extraFlour2,
+      extraPct2,
+
+      fatType,
+      eggType,
+      sugarType,
+      yeastForm,
+
+      preferment: {
+        type: prefermentType,
+        flour: prefFlour,
+        liquid: prefLiquid,
+        yeast: prefYeast,
+        total: prefermentTotal,
+      },
+
+      finalFlour,
+      finalLiquid,
+      finalYeast,
+
+      finalDough,
+      totalDough,
+    };
+
+    setRecipeData({ ...calculated, _calculated: true });
   };
+
+
 
   // ------------------------------------------------------------
   // === ЭКРАНЫ ===

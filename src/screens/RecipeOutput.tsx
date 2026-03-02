@@ -43,11 +43,12 @@ const RecipeOutput: React.FC<RecipeOutputProps> = ({
     flour,
     liquid,
     liquidType,
-
+    
     salt,
     sugar,
     fat,
     eggs,
+    eggsGr,
     yeast,
     hydration,
 
@@ -99,7 +100,7 @@ const RecipeOutput: React.FC<RecipeOutputProps> = ({
         <Row label="Соль" value={`${salt} г`} />
         <Row label="Сахар" value={`${sugar} г`} />
         <Row label="Жиры" value={`${fat} г`} />
-        <Row label="Яйца" value={`${eggs * 50} г (${eggs} шт)`} />
+        <Row label="Яйца" value={`${eggsGr} г (${eggs} шт, ${eggType})`} />
         <Row label="Дрожжи (всего)" value={`${yeast} г`} />
         <Row label="Гидратация" value={`${hydration}%`} />
       </Section>

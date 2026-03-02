@@ -273,6 +273,7 @@ const handleProfileSelect = (profileId: string) => {
       sugar: sugarGr,
       fat: fatGr,
       eggs,
+      eggsGr,
       yeast,
       hydration,
 

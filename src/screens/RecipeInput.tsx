@@ -1,6 +1,8 @@
 import React from "react";
 import NumberInput from "../components/NumberInput";
 import type { PrefermentType } from "../logic/preferment";
+import { EGG_WEIGHTS } from "../logic/eggWeights";
+
 
 import type {
   FlourType,
@@ -148,10 +150,10 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       const saltGr = (finalFlour * salt) / 100;
       const sugarGr = (finalFlour * sugar) / 100;
       const fatGr = (finalFlour * fat) / 100;
-      const eggsGr = eggs * 50;
-
+      const eggsGr = eggs * EGG_WEIGHTS[eggType];
       const totalNow =
-        finalFlour + water + saltGr + sugarGr + fatGr + eggsGr;
+      finalFlour + water + saltGr + sugarGr + fatGr + eggsGr;
+
 
       const ratio = targetDoughWeight / totalNow;
       finalFlour = Math.round(finalFlour * ratio);

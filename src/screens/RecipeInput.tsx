@@ -3,7 +3,6 @@ import NumberInput from "../components/NumberInput";
 import type { PrefermentType } from "../logic/preferment";
 import { EGG_WEIGHTS } from "../logic/eggWeights";
 
-
 import type {
   FlourType,
   LiquidType,
@@ -52,12 +51,14 @@ const LIQUID_TYPES: LiquidType[] = [
 ];
 
 const FAT_TYPES: FatType[] = ["butter", "oil", "ghee", "margarine"];
-
 const EGG_TYPES: EggType[] = ["whole", "yolk", "white", "powder"];
-
 const SUGAR_TYPES: SugarType[] = ["white", "brown", "panela"];
-
 const YEAST_FORMS: YeastForm[] = ["instant", "fresh"];
+
+const n = (value: unknown, fallback = 0) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
 
 const RecipeInput: React.FC<RecipeInputProps> = ({
   profileId,
@@ -66,113 +67,206 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
   onBack,
   onCalculate,
 }) => {
-  // режим расчёта
-  const [mode, setMode] = React.useState<"flour" | "dough">("flour");
+  const base = profile?.base ?? {};
+  const pref = profile?.preferment ?? {};
 
-  // === БАЗОВЫЕ ПОЛЯ ===
-  const [flour, setFlour] = React.useState(initialValues.flour);
-  const [targetDoughWeight, setTargetDoughWeight] = React.useState(0);
+  const [mode, setMode] = React.useState<"flour" | "dough">(
+    initialValues.mode ?? "flour"
+  );
 
-  const [salt, setSalt] = React.useState(initialValues.salt);
-  const [sugar, setSugar] = React.useState(initialValues.sugar);
-  const [fat, setFat] = React.useState(initialValues.fat);
-  const [eggs, setEggs] = React.useState(initialValues.eggs);
+  const [flour, setFlour] = React.useState(
+    initialValues.flour ?? base.flour ?? 1000
+  );
 
-  // 🔥 ДОБАВЛЕНО: ГИДРАТАЦИЯ
+  const [targetDoughWeight, setTargetDoughWeight] = React.useState(
+    initialValues.targetDoughWeight ?? 0
+  );
+
   const [hydration, setHydration] = React.useState(
-    initialValues.hydration ?? profile.hydration ?? 60
+    initialValues.hydration ?? base.hydration ?? 60
   );
 
-  // 🔥 ДОБАВЛЕНО: ДРОЖЖИ (%)
+  const [salt, setSalt] = React.useState(
+    initialValues.salt ?? base.salt ?? 2
+  );
+
+  const [sugar, setSugar] = React.useState(
+    initialValues.sugar ?? base.sugar ?? 0
+  );
+
+  const [fat, setFat] = React.useState(
+    initialValues.fat ?? base.fat ?? 0
+  );
+
+  const [eggs, setEggs] = React.useState(
+    initialValues.eggs ?? base.eggs ?? 0
+  );
+
   const [yeastPct, setYeastPct] = React.useState(
-    initialValues.yeastPct ?? profile.yeast?.percent ?? 1
+    initialValues.yeastPct ?? base.yeast?.percent ?? 1
   );
 
-  // === НОВЫЕ ПАРАМЕТРЫ: МУКА ===
-  const [mainFlour, setMainFlour] = React.useState<FlourType>("normal");
+  const [mainFlour, setMainFlour] = React.useState<FlourType>(
+    initialValues.mainFlour ?? "normal"
+  );
 
-  const [extraFlour1, setExtraFlour1] = React.useState<FlourType>("normal");
-  const [extraPct1, setExtraPct1] = React.useState(0);
+  const [extraFlour1, setExtraFlour1] = React.useState<FlourType>(
+    initialValues.extraFlour1 ?? "normal"
+  );
 
-  const [extraFlour2, setExtraFlour2] = React.useState<FlourType>("normal");
-  const [extraPct2, setExtraPct2] = React.useState(0);
+  const [extraPct1, setExtraPct1] = React.useState(
+    initialValues.extraPct1 ?? 0
+  );
 
-  // === НОВЫЕ ПАРАМЕТРЫ: ЖИДКОСТИ / ЖИРЫ / ЯЙЦА / САХАР / ДРОЖЖИ ===
-  const [liquidType, setLiquidType] = React.useState<LiquidType>("water");
-  const [fatType, setFatType] = React.useState<FatType>("butter");
-  const [eggType, setEggType] = React.useState<EggType>("whole");
-  const [sugarType, setSugarType] = React.useState<SugarType>("white");
-  const [yeastForm, setYeastForm] = React.useState<YeastForm>("instant");
+  const [extraFlour2, setExtraFlour2] = React.useState<FlourType>(
+    initialValues.extraFlour2 ?? "normal"
+  );
 
-  // === ПРЕДФЕРМЕНТ ===
+  const [extraPct2, setExtraPct2] = React.useState(
+    initialValues.extraPct2 ?? 0
+  );
+
+  const [liquidType, setLiquidType] = React.useState<LiquidType>(
+    initialValues.liquidType ?? "water"
+  );
+
+  const [fatType, setFatType] = React.useState<FatType>(
+    initialValues.fatType ?? "butter"
+  );
+
+  const [eggType, setEggType] = React.useState<EggType>(
+    initialValues.eggType ?? "whole"
+  );
+
+  const [sugarType, setSugarType] = React.useState<SugarType>(
+    initialValues.sugarType ?? "white"
+  );
+
+  const [yeastForm, setYeastForm] = React.useState<YeastForm>(
+    initialValues.yeastForm ?? base.yeast?.type ?? "instant"
+  );
+
   const [prefermentType, setPrefermentType] = React.useState<PrefermentType>(
-    initialValues.prefermentType || profile.preferment?.type || "none"
+    initialValues.prefermentType ??
+      pref.type ??
+      profile?.prefermentId ??
+      "none"
   );
 
   const [prefermentFlourPct, setPrefermentFlourPct] = React.useState(
-    initialValues.prefermentFlourPct ??
-      profile.preferment?.percentOfFlour ??
-      0
+    initialValues.prefermentFlourPct ?? pref.percentOfFlour ?? 0
   );
 
   const [prefermentHydrationPct, setPrefermentHydrationPct] = React.useState(
-    initialValues.prefermentHydrationPct ??
-      profile.preferment?.hydration ??
-      100
+    initialValues.prefermentHydrationPct ?? pref.hydration ?? 100
   );
 
   const [prefermentYeastPct, setPrefermentYeastPct] = React.useState(
-    initialValues.prefermentYeastPct ??
-      profile.preferment?.yeastPercentInPreferment ??
-      0
+    initialValues.prefermentYeastPct ?? pref.yeastPercentInPreferment ?? 0
   );
 
-  // === НОРМАЛИЗАЦИЯ ПРОЦЕНТОВ ДОП. МУКИ ===
-  const normalizeExtraFlours = () => {
-    const total = extraPct1 + extraPct2;
+  React.useEffect(() => {
+    const nextBase = profile?.base ?? {};
+    const nextPref = profile?.preferment ?? {};
+
+    setMode(initialValues.mode ?? "flour");
+
+    setFlour(initialValues.flour ?? nextBase.flour ?? 1000);
+    setTargetDoughWeight(initialValues.targetDoughWeight ?? 0);
+
+    setHydration(initialValues.hydration ?? nextBase.hydration ?? 60);
+    setSalt(initialValues.salt ?? nextBase.salt ?? 2);
+    setSugar(initialValues.sugar ?? nextBase.sugar ?? 0);
+    setFat(initialValues.fat ?? nextBase.fat ?? 0);
+    setEggs(initialValues.eggs ?? nextBase.eggs ?? 0);
+    setYeastPct(initialValues.yeastPct ?? nextBase.yeast?.percent ?? 1);
+
+    setMainFlour(initialValues.mainFlour ?? "normal");
+    setExtraFlour1(initialValues.extraFlour1 ?? "normal");
+    setExtraPct1(initialValues.extraPct1 ?? 0);
+    setExtraFlour2(initialValues.extraFlour2 ?? "normal");
+    setExtraPct2(initialValues.extraPct2 ?? 0);
+
+    setLiquidType(initialValues.liquidType ?? "water");
+    setFatType(initialValues.fatType ?? "butter");
+    setEggType(initialValues.eggType ?? "whole");
+    setSugarType(initialValues.sugarType ?? "white");
+    setYeastForm(initialValues.yeastForm ?? nextBase.yeast?.type ?? "instant");
+
+    setPrefermentType(
+      initialValues.prefermentType ??
+        nextPref.type ??
+        profile?.prefermentId ??
+        "none"
+    );
+    setPrefermentFlourPct(
+      initialValues.prefermentFlourPct ?? nextPref.percentOfFlour ?? 0
+    );
+    setPrefermentHydrationPct(
+      initialValues.prefermentHydrationPct ?? nextPref.hydration ?? 100
+    );
+    setPrefermentYeastPct(
+      initialValues.prefermentYeastPct ??
+        nextPref.yeastPercentInPreferment ??
+        0
+    );
+  }, [initialValues, profile]);
+
+  React.useEffect(() => {
+    const total = n(extraPct1, 0) + n(extraPct2, 0);
     if (total <= 100) return;
 
     const k = 100 / total;
-    setExtraPct1(Math.round(extraPct1 * k));
-    setExtraPct2(Math.round(extraPct2 * k));
-  };
-
-  React.useEffect(() => {
-    normalizeExtraFlours();
+    setExtraPct1(Math.round(n(extraPct1, 0) * k));
+    setExtraPct2(Math.round(n(extraPct2, 0) * k));
   }, [extraPct1, extraPct2]);
 
-  // === SUBMIT ===
   const handleSubmit = () => {
-    let finalFlour = flour;
+    const flourSafe = n(flour, 0);
+    const hydrationSafe = n(hydration, 0);
+    const saltSafe = n(salt, 0);
+    const sugarSafe = n(sugar, 0);
+    const fatSafe = n(fat, 0);
+    const eggsSafe = n(eggs, 0);
+    const yeastPctSafe = n(yeastPct, 0);
+    const targetDoughWeightSafe = n(targetDoughWeight, 0);
 
-    if (mode === "dough" && targetDoughWeight > 0) {
-      const water = (finalFlour * hydration) / 100;
-      const saltGr = (finalFlour * salt) / 100;
-      const sugarGr = (finalFlour * sugar) / 100;
-      const fatGr = (finalFlour * fat) / 100;
-      const eggsGr = eggs * EGG_WEIGHTS[eggType];
+    let finalFlour = flourSafe;
+
+    if (mode === "dough" && targetDoughWeightSafe > 0) {
+      const water = (flourSafe * hydrationSafe) / 100;
+      const saltGr = (flourSafe * saltSafe) / 100;
+      const sugarGr = (flourSafe * sugarSafe) / 100;
+      const fatGr = (flourSafe * fatSafe) / 100;
+      const eggsGr = eggsSafe * (EGG_WEIGHTS[eggType] ?? 50);
+      const yeastGr = (flourSafe * yeastPctSafe) / 100;
+
       const totalNow =
-      finalFlour + water + saltGr + sugarGr + fatGr + eggsGr;
+        flourSafe + water + saltGr + sugarGr + fatGr + eggsGr + yeastGr;
 
-
-      const ratio = targetDoughWeight / totalNow;
-      finalFlour = Math.round(finalFlour * ratio);
+      if (totalNow > 0) {
+        const ratio = targetDoughWeightSafe / totalNow;
+        finalFlour = Math.round(flourSafe * ratio);
+      }
     }
 
     onCalculate({
+      mode,
+      targetDoughWeight: targetDoughWeightSafe,
+
       flour: finalFlour,
-      hydration,
-      salt,
-      sugar,
-      fat,
-      eggs,
-      yeastPct,
+      hydration: hydrationSafe,
+      salt: saltSafe,
+      sugar: sugarSafe,
+      fat: fatSafe,
+      eggs: eggsSafe,
+      yeastPct: yeastPctSafe,
 
       mainFlour,
       extraFlour1,
-      extraPct1,
+      extraPct1: n(extraPct1, 0),
       extraFlour2,
-      extraPct2,
+      extraPct2: n(extraPct2, 0),
 
       liquidType,
       fatType,
@@ -181,9 +275,9 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
       yeastForm,
 
       prefermentType,
-      prefermentFlourPct,
-      prefermentHydrationPct,
-      prefermentYeastPct,
+      prefermentFlourPct: n(prefermentFlourPct, 0),
+      prefermentHydrationPct: n(prefermentHydrationPct, 100),
+      prefermentYeastPct: n(prefermentYeastPct, 0),
     });
   };
 
@@ -195,9 +289,6 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
 
       <h1 style={{ marginBottom: "24px" }}>Параметры теста: {profileId}</h1>
 
-      {/* -------------------------------------------------- */}
-      {/* РЕЖИМ РАСЧЁТА */}
-      {/* -------------------------------------------------- */}
       <Section title="Режим расчёта">
         <div style={{ display: "flex", gap: "24px" }}>
           <label>
@@ -220,9 +311,6 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
         </div>
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* ГИДРАТАЦИЯ И ДРОЖЖИ */}
-      {/* -------------------------------------------------- */}
       <Section title="Вода и дрожжи">
         <NumberInput
           label="Гидратация (%)"
@@ -237,9 +325,6 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
         />
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* МУКА */}
-      {/* -------------------------------------------------- */}
       <Section title="Типы муки">
         <div style={{ display: "grid", gap: "16px" }}>
           <label>
@@ -301,9 +386,6 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
         </div>
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* ОСНОВНЫЕ ИНГРЕДИЕНТЫ */}
-      {/* -------------------------------------------------- */}
       <Section title="Основные ингредиенты">
         <div style={{ display: "grid", gap: "16px" }}>
           {mode === "flour" ? (
@@ -323,9 +405,6 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
         </div>
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* ТИПЫ ИНГРЕДИЕНТОВ */}
-      {/* -------------------------------------------------- */}
       <Section title="Типы ингредиентов">
         <div style={{ display: "grid", gap: "16px" }}>
           <label>
@@ -405,9 +484,6 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
         </div>
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* ПРЕДФЕРМЕНТ */}
-      {/* -------------------------------------------------- */}
       <Section title="Предфермент">
         <label style={{ display: "block", marginBottom: "12px" }}>
           Тип:
@@ -450,9 +526,6 @@ const RecipeInput: React.FC<RecipeInputProps> = ({
         )}
       </Section>
 
-      {/* -------------------------------------------------- */}
-      {/* КНОПКА */}
-      {/* -------------------------------------------------- */}
       <button
         onClick={handleSubmit}
         style={{

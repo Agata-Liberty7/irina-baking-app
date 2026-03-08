@@ -70,15 +70,15 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function detectType(profile: any) {
-  const sugar = profile.base.sugar;
-  const fat = profile.base.fat;
-  const eggs = profile.base.eggs;
-  const yeast = profile.base.yeast?.percent ?? 0;
+  const sugar = profile.base?.sugar ?? 0;
+  const fat = profile.base?.fat ?? 0;
+  const eggs = profile.base?.eggs ?? 0;
+  const yeast = profile.base?.yeast?.percent ?? 0;
 
   return {
     isEnriched: sugar > 5 || fat > 5 || eggs > 0,
     isLean: sugar <= 5 && fat <= 5 && eggs === 0 && yeast > 0,
-    isSourdough: yeast === 0 && profile.preferment?.type === "levain",
+    isSourdough: yeast === 0 && profile.prefermentId === "levain",
     isFried:
       profile.category === "fried" || profile.category === "fried_enriched",
     isBoiled: profile.category === "boiled_bread",
@@ -87,7 +87,10 @@ function detectType(profile: any) {
 }
 
 function detectDefaultPreferment(profile: any) {
-  if (profile.preferment?.enabled) return profile.preferment.type;
+  if (profile.prefermentId) return profile.prefermentId;
+  if (profile.preferment?.enabled && profile.preferment?.type) {
+    return profile.preferment.type;
+  }
 
   if (profile.category === "bread") return "poolish";
   if (profile.category === "enriched") return "yeasted_sponge";
@@ -112,17 +115,21 @@ export function loadProfile(
   if (!raw) throw new Error(`Профиль ${profileId} не найден`);
 
   const profile = JSON.parse(JSON.stringify(raw));
-  const base = profile.base;
-  const limits = profile.limits;
+  const base = profile.base ?? {};
+  const limits = profile.limits ?? {};
+
+  const flags = detectType(profile);
 
   // -----------------------------
   // 1. Климатические поправки
   // -----------------------------
   const climateAdj = profile.climateAdjustments?.[climate];
   if (climateAdj) {
-    base.hydration += climateAdj.hydrationDelta || 0;
+    base.hydration = (base.hydration ?? 0) + (climateAdj.hydrationDelta || 0);
+
     if (base.yeast) {
-      base.yeast.percent += climateAdj.yeastDeltaPercent || 0;
+      base.yeast.percent =
+        (base.yeast.percent ?? 0) + (climateAdj.yeastDeltaPercent || 0);
     }
   }
 
@@ -131,52 +138,90 @@ export function loadProfile(
   // -----------------------------
   const mixingAdj = profile.mixingAdjustments?.[mixing];
   if (mixingAdj) {
-    base.hydration += mixingAdj.hydrationDelta || 0;
+    base.hydration = (base.hydration ?? 0) + (mixingAdj.hydrationDelta || 0);
+
     if (base.yeast) {
-      base.yeast.percent += mixingAdj.yeastPercentDelta || 0;
+      base.yeast.percent =
+        (base.yeast.percent ?? 0) + (mixingAdj.yeastPercentDelta || 0);
     }
   }
 
   // -----------------------------
-  // 3. Умная модель (вариант C+)
+  // 3. Умная модель
   // -----------------------------
   const productionMode = opts?.productionMode ?? "home";
   const coldHours = opts?.coldHours ?? 0;
   const warmHours = opts?.warmHours ?? 0;
   const flourType = opts?.flourType ?? "normal";
-  const yeastForm = opts?.yeastForm ?? "instant";
+  const yeastForm = opts?.yeastForm ?? (base.yeast?.type ?? "instant");
 
-  // 3.1 Гидратация
-  base.hydration = computeHydration({
-    baseHydration: base.hydration,
-    flourType,
-  });
+  // 3.1 Гидратация — корректируем от профильной базы
+  if (typeof base.hydration === "number") {
+    base.hydration = computeHydration({
+      baseHydration: base.hydration,
+      mainFlour: "normal",
+      extraFlour1: "normal",
+      extraPct1: 0,
+      extraFlour2: "normal",
+      extraPct2: 0,
+      liquidType: "water",
+      fatType: "butter",
+      sugarType: "white",
+      eggType: "whole",
+    });
+  }
 
-  // 3.2 Дрожжи (если не чистый левен)
-  if (base.yeast && profile.preferment?.type !== "levain") {
-    base.yeast.percent = computeYeastPercent({
+  // 3.2 Дрожжи — НЕ заменяем профильную базу,
+  // а используем профильный % как основу и потом ограничиваем.
+  // Если хочешь совсем без авто-модели — этот блок можно вообще убрать.
+  if (base.yeast && profile.prefermentId !== "levain") {
+    const modelYeastPercent = computeYeastPercent({
       coldHours,
       warmHours,
-      doughType: profile.isEnriched ? "enriched" : "lean",
+      doughType: flags.isEnriched ? "enriched" : "lean",
       yeastForm,
-      flourType,
       productionMode,
+      mainFlour: "normal",
+      extraFlour1: "normal",
+      extraPct1: 0,
+      extraFlour2: "normal",
+      extraPct2: 0,
     });
+
+    // Берём профильную базу как приоритетную.
+    // Модель используем только как fallback, если в профиле нет числа.
+    if (
+      typeof base.yeast.percent !== "number" ||
+      Number.isNaN(base.yeast.percent)
+    ) {
+      base.yeast.percent = modelYeastPercent;
+    }
   }
 
   // -----------------------------
   // 4. Ограничения профиля
   // -----------------------------
-  base.hydration = clamp(
-    base.hydration,
-    limits.hydration.min,
-    limits.hydration.max
-  );
-  base.salt = clamp(base.salt, limits.salt.min, limits.salt.max);
-  base.sugar = clamp(base.sugar, limits.sugar.min, limits.sugar.max);
-  base.fat = clamp(base.fat, limits.fat.min, limits.fat.max);
+  if (limits.hydration) {
+    base.hydration = clamp(
+      base.hydration,
+      limits.hydration.min,
+      limits.hydration.max
+    );
+  }
 
-  if (base.yeast) {
+  if (limits.salt) {
+    base.salt = clamp(base.salt, limits.salt.min, limits.salt.max);
+  }
+
+  if (limits.sugar) {
+    base.sugar = clamp(base.sugar, limits.sugar.min, limits.sugar.max);
+  }
+
+  if (limits.fat) {
+    base.fat = clamp(base.fat, limits.fat.min, limits.fat.max);
+  }
+
+  if (base.yeast && limits.yeastPercent) {
     base.yeast.percent = clamp(
       base.yeast.percent,
       limits.yeastPercent.min,
@@ -187,11 +232,9 @@ export function loadProfile(
   // -----------------------------
   // 5. Предфермент
   // -----------------------------
-  const prefType = profile.preferment?.type || "none";
-  const prefData = preferments[prefType] || preferments["none"];
-
-  const flags = detectType(profile);
   const defaultPrefermentType = detectDefaultPreferment(profile);
+  const prefType = profile.preferment?.type || profile.prefermentId || "none";
+  const prefData = preferments[prefType] || preferments.none;
 
   return {
     id: profile.id,
@@ -207,7 +250,7 @@ export function loadProfile(
     uiHints: profile.uiHints,
 
     preferment: {
-      enabled: profile.preferment?.enabled || false,
+      enabled: profile.preferment?.enabled || prefType !== "none",
       type: prefType,
       percentOfFlour: profile.preferment?.percentOfFlour || 0,
       hydration: profile.preferment?.hydration || 100,

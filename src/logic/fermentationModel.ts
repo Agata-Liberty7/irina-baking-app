@@ -1,6 +1,6 @@
 // ===============================
 //   FERMENTATION + HYDRATION MODEL
-//   (умная, но не заумная версия C)
+//   safe + strict version
 // ===============================
 
 export type YeastForm = "instant" | "fresh";
@@ -24,18 +24,21 @@ export type LiquidType =
   | "plant_milk";
 
 export type FatType =
+  | "none"
   | "butter"
   | "oil"
   | "ghee"
   | "margarine";
 
 export type EggType =
+  | "none"
   | "whole"
   | "yolk"
   | "white"
   | "powder";
 
 export type SugarType =
+  | "none"
   | "white"
   | "brown"
   | "panela";
@@ -48,7 +51,6 @@ export type YeastModelInput = {
   doughType: DoughType;
   yeastForm: YeastForm;
 
-  // мука
   mainFlour: FlourType;
   extraFlour1: FlourType;
   extraPct1: number;
@@ -74,10 +76,9 @@ export type HydrationModelInput = {
 };
 
 // ===============================
-//   1. Таблицы влияния муки
+//   1. Flour tables
 // ===============================
 
-// Автоматический W по типу муки
 const W_BY_FLOUR: Record<FlourType, number> = {
   normal: 220,
   strong: 300,
@@ -90,12 +91,11 @@ const W_BY_FLOUR: Record<FlourType, number> = {
   flax: 30,
 };
 
-// Влияние муки на ферментацию (простая модель)
 const FLOUR_FERMENTATION_FACTOR: Record<FlourType, number> = {
   normal: 0,
   strong: -0.05,
   integral: -0.05,
-  rye: +0.10,
+  rye: 0.10,
   buckwheat: -0.10,
   corn: -0.05,
   rice: -0.05,
@@ -103,7 +103,6 @@ const FLOUR_FERMENTATION_FACTOR: Record<FlourType, number> = {
   flax: -0.20,
 };
 
-// Влияние муки на гидратацию
 const FLOUR_HYDRATION_DELTA: Record<FlourType, number> = {
   normal: 0,
   strong: 2,
@@ -117,7 +116,7 @@ const FLOUR_HYDRATION_DELTA: Record<FlourType, number> = {
 };
 
 // ===============================
-//   2. Таблицы влияния жидкостей
+//   2. Liquid tables
 // ===============================
 
 const LIQUID_WATER_EQUIVALENT: Record<LiquidType, number> = {
@@ -129,20 +128,22 @@ const LIQUID_WATER_EQUIVALENT: Record<LiquidType, number> = {
 };
 
 // ===============================
-//   3. Таблицы влияния сахара
+//   3. Sugar tables
 // ===============================
 
 const SUGAR_WATER_DELTA: Record<SugarType, number> = {
+  none: 0,
   white: 0,
   brown: 0.02,
   panela: 0.05,
 };
 
 // ===============================
-//   4. Таблицы влияния жира
+//   4. Fat tables
 // ===============================
 
 const FAT_WATER_DELTA: Record<FatType, number> = {
+  none: 0,
   butter: -0.02,
   oil: -0.03,
   ghee: -0.03,
@@ -150,10 +151,11 @@ const FAT_WATER_DELTA: Record<FatType, number> = {
 };
 
 // ===============================
-//   5. Таблицы влияния яиц
+//   5. Egg tables
 // ===============================
 
 const EGG_WATER_EQUIVALENT: Record<EggType, number> = {
+  none: 0,
   whole: 0.76,
   yolk: 0.48,
   white: 0.88,
@@ -161,7 +163,7 @@ const EGG_WATER_EQUIVALENT: Record<EggType, number> = {
 };
 
 // ===============================
-//   6. Таблицы дрожжей (IDY + fresh)
+//   6. Yeast tables
 // ===============================
 
 const IDY_TABLE: [number, number][] = [
@@ -193,8 +195,33 @@ const FRESH_TABLE: [number, number][] = [
 ];
 
 // ===============================
-//   Вспомогательная интерполяция
+//   Helpers
 // ===============================
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeFlourShares(extraPct1: number, extraPct2: number) {
+  const e1 = clamp(extraPct1, 0, 100);
+  const e2 = clamp(extraPct2, 0, 100);
+  const extraTotal = e1 + e2;
+
+  if (extraTotal >= 100) {
+    const scale = 100 / extraTotal;
+    return {
+      mainShare: 0,
+      extraShare1: (e1 * scale) / 100,
+      extraShare2: (e2 * scale) / 100,
+    };
+  }
+
+  return {
+    mainShare: 1 - extraTotal / 100,
+    extraShare1: e1 / 100,
+    extraShare2: e2 / 100,
+  };
+}
 
 function lerpTable(hours: number, table: [number, number][]) {
   if (hours <= table[0][0]) return table[0][1];
@@ -203,16 +230,56 @@ function lerpTable(hours: number, table: [number, number][]) {
   for (let i = 0; i < table.length - 1; i++) {
     const [h1, v1] = table[i];
     const [h2, v2] = table[i + 1];
+
     if (hours >= h1 && hours <= h2) {
       const t = (hours - h1) / (h2 - h1);
       return v1 + (v2 - v1) * t;
     }
   }
+
   return table[table.length - 1][1];
 }
 
+function computeWeightedFlourFermentationFactor(
+  mainFlour: FlourType,
+  extraFlour1: FlourType,
+  extraPct1: number,
+  extraFlour2: FlourType,
+  extraPct2: number
+) {
+  const { mainShare, extraShare1, extraShare2 } = normalizeFlourShares(
+    extraPct1,
+    extraPct2
+  );
+
+  return (
+    FLOUR_FERMENTATION_FACTOR[mainFlour] * mainShare +
+    FLOUR_FERMENTATION_FACTOR[extraFlour1] * extraShare1 +
+    FLOUR_FERMENTATION_FACTOR[extraFlour2] * extraShare2
+  );
+}
+
+function computeWeightedFlourHydrationDelta(
+  mainFlour: FlourType,
+  extraFlour1: FlourType,
+  extraPct1: number,
+  extraFlour2: FlourType,
+  extraPct2: number
+) {
+  const { mainShare, extraShare1, extraShare2 } = normalizeFlourShares(
+    extraPct1,
+    extraPct2
+  );
+
+  return (
+    FLOUR_HYDRATION_DELTA[mainFlour] * mainShare +
+    FLOUR_HYDRATION_DELTA[extraFlour1] * extraShare1 +
+    FLOUR_HYDRATION_DELTA[extraFlour2] * extraShare2
+  );
+}
+
 // ===============================
-//   7. W-factor (авто)
+//   7. W-factor
 // ===============================
 
 function computeWFactor(
@@ -222,14 +289,15 @@ function computeWFactor(
   extra2: FlourType,
   pct2: number
 ) {
-  const W_main = W_BY_FLOUR[main];
-  const W_e1 = W_BY_FLOUR[extra1];
-  const W_e2 = W_BY_FLOUR[extra2];
+  const { mainShare, extraShare1, extraShare2 } = normalizeFlourShares(
+    pct1,
+    pct2
+  );
 
   const W_weighted =
-    W_main * (1 - pct1 / 100 - pct2 / 100) +
-    W_e1 * (pct1 / 100) +
-    W_e2 * (pct2 / 100);
+    W_BY_FLOUR[main] * mainShare +
+    W_BY_FLOUR[extra1] * extraShare1 +
+    W_BY_FLOUR[extra2] * extraShare2;
 
   if (W_weighted < 180) return 1.05;
   if (W_weighted > 280) return 0.95;
@@ -237,7 +305,7 @@ function computeWFactor(
 }
 
 // ===============================
-//   8. Итоговая модель дрожжей
+//   8. Yeast model
 // ===============================
 
 export function computeYeastPercent(input: YeastModelInput): number {
@@ -254,21 +322,25 @@ export function computeYeastPercent(input: YeastModelInput): number {
     productionMode,
   } = input;
 
+  const cold = Math.max(0, coldHours);
+  const warm = Math.max(0, warmHours);
+
   const base =
     yeastForm === "instant"
-      ? lerpTable(coldHours, IDY_TABLE)
-      : lerpTable(coldHours, FRESH_TABLE);
+      ? lerpTable(cold, IDY_TABLE)
+      : lerpTable(cold, FRESH_TABLE);
 
   const kDough = doughType === "enriched" ? 1.2 : 1.0;
   const kMode = productionMode === "professional" ? 0.9 : 1.0;
+  const kWarm = warm <= 1 ? 1.1 : warm >= 4 ? 0.9 : 1.0;
 
-  const kWarm =
-    warmHours <= 1 ? 1.1 : warmHours >= 4 ? 0.9 : 1.0;
-
-  const kFlour =
-    FLOUR_FERMENTATION_FACTOR[mainFlour] +
-    FLOUR_FERMENTATION_FACTOR[extraFlour1] * (extraPct1 / 100) +
-    FLOUR_FERMENTATION_FACTOR[extraFlour2] * (extraPct2 / 100);
+  const kFlour = computeWeightedFlourFermentationFactor(
+    mainFlour,
+    extraFlour1,
+    extraPct1,
+    extraFlour2,
+    extraPct2
+  );
 
   const kW = computeWFactor(
     mainFlour,
@@ -278,14 +350,16 @@ export function computeYeastPercent(input: YeastModelInput): number {
     extraPct2
   );
 
-  return base * kDough * kMode * kWarm * (1 + kFlour) * kW;
+  const result = base * kDough * kMode * kWarm * (1 + kFlour) * kW;
+
+  return Math.max(0.0001, result);
 }
 
 // ===============================
-//   9. Итоговая модель гидратации
+//   9. Shared hydration base
 // ===============================
 
-export function computeHydration(input: HydrationModelInput): number {
+function computeTargetWaterPercent(input: HydrationModelInput): number {
   const {
     baseHydration,
     mainFlour,
@@ -293,23 +367,54 @@ export function computeHydration(input: HydrationModelInput): number {
     extraPct1,
     extraFlour2,
     extraPct2,
-    liquidType,
     fatType,
     sugarType,
     eggType,
   } = input;
 
-  let hydration =
+  let targetWaterPercent =
     baseHydration +
-    FLOUR_HYDRATION_DELTA[mainFlour] +
-    FLOUR_HYDRATION_DELTA[extraFlour1] * (extraPct1 / 100) +
-    FLOUR_HYDRATION_DELTA[extraFlour2] * (extraPct2 / 100);
+    computeWeightedFlourHydrationDelta(
+      mainFlour,
+      extraFlour1,
+      extraPct1,
+      extraFlour2,
+      extraPct2
+    );
 
-  hydration += SUGAR_WATER_DELTA[sugarType] * 100;
-  hydration += FAT_WATER_DELTA[fatType] * 100;
-  hydration += EGG_WATER_EQUIVALENT[eggType] * 10;
+  targetWaterPercent += SUGAR_WATER_DELTA[sugarType] * 100;
+  targetWaterPercent += FAT_WATER_DELTA[fatType] * 100;
+  targetWaterPercent += EGG_WATER_EQUIVALENT[eggType] * 10;
 
-  hydration *= LIQUID_WATER_EQUIVALENT[liquidType];
+  return Math.max(0, targetWaterPercent);
+}
 
-  return hydration;
+// ===============================
+//   10. Compatible hydration model
+//   keeps current app behavior style
+// ===============================
+
+export function computeHydration(input: HydrationModelInput): number {
+  const targetWaterPercent = computeTargetWaterPercent(input);
+  return Math.max(
+    0,
+    targetWaterPercent * LIQUID_WATER_EQUIVALENT[input.liquidType]
+  );
+}
+
+// ===============================
+//   11. Strict hydration model
+//   effective water approach
+// ===============================
+
+export function computeHydrationStrict(input: HydrationModelInput): number {
+  const targetWaterPercent = computeTargetWaterPercent(input);
+  const liquidEq = LIQUID_WATER_EQUIVALENT[input.liquidType];
+
+  if (liquidEq <= 0) return targetWaterPercent;
+
+  // сколько жидкости нужно, чтобы получить ту же эффективную воду
+  const requiredLiquidPercent = targetWaterPercent / liquidEq;
+
+  return Math.max(0, requiredLiquidPercent);
 }

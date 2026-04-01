@@ -28,7 +28,6 @@ import enriched_pref from "../profiles/enriched.json";
 
 import {
   computeYeastPercent,
-  computeHydration,
   type FlourType,
   type YeastForm,
 } from "./fermentationModel";
@@ -155,25 +154,16 @@ export function loadProfile(
   const flourType = opts?.flourType ?? "normal";
   const yeastForm = opts?.yeastForm ?? (base.yeast?.type ?? "instant");
 
-  // 3.1 Гидратация — корректируем от профильной базы
-  if (typeof base.hydration === "number") {
-    base.hydration = computeHydration({
-      baseHydration: base.hydration,
-      mainFlour: "normal",
-      extraFlour1: "normal",
-      extraPct1: 0,
-      extraFlour2: "normal",
-      extraPct2: 0,
-      liquidType: "water",
-      fatType: "butter",
-      sugarType: "white",
-      eggType: "whole",
-    });
-  }
+  // 3.1 Гидратация
+  // Здесь НЕ вызываем computeHydration(), потому что на этапе загрузки профиля
+  // у нас ещё нет реальных пользовательских выборов по жидкости / жиру / яйцам / сахару.
+  // Оставляем профильную базу + climate/mixing adjustments.
+  // Динамический пересчёт гидратации должен происходить позже, на этапе RecipeInput.
 
-  // 3.2 Дрожжи — НЕ заменяем профильную базу,
-  // а используем профильный % как основу и потом ограничиваем.
-  // Если хочешь совсем без авто-модели — этот блок можно вообще убрать.
+  // 3.2 Дрожжи
+  // Профиль остаётся источником истины.
+  // Модель используем только как fallback, если в профиле не задан yeast.percent.
+  // Но flourType уже учитываем реально.
   if (base.yeast && profile.prefermentId !== "levain") {
     const modelYeastPercent = computeYeastPercent({
       coldHours,
@@ -181,15 +171,13 @@ export function loadProfile(
       doughType: flags.isEnriched ? "enriched" : "lean",
       yeastForm,
       productionMode,
-      mainFlour: "normal",
+      mainFlour: flourType,
       extraFlour1: "normal",
       extraPct1: 0,
       extraFlour2: "normal",
       extraPct2: 0,
     });
 
-    // Берём профильную базу как приоритетную.
-    // Модель используем только как fallback, если в профиле нет числа.
     if (
       typeof base.yeast.percent !== "number" ||
       Number.isNaN(base.yeast.percent)

@@ -23,6 +23,10 @@ export type FermentationResult = {
   notes: string[];
 };
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 // ------------------------------------------------------
 // Основная функция
 // ------------------------------------------------------
@@ -86,7 +90,7 @@ export function calculateFermentation(input: FermentationInput): FermentationRes
   // ------------------------------------------------------
   // базовая норма: 1% сухих дрожжей
   const yeastPct = (input.totalYeast / input.flour) * 100;
-  const yeastFactor = 1 / (yeastPct / 1.0);
+  const yeastFactor = clamp(1 / Math.max(yeastPct, 0.1), 0.5, 4);
 
   if (yeastPct < 0.5) notes.push(`Мало дрожжей (${yeastPct.toFixed(2)}%): брожение будет медленным.`);
   if (yeastPct > 1.5) notes.push(`Много дрожжей (${yeastPct.toFixed(2)}%): брожение ускорится.`);

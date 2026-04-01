@@ -123,17 +123,21 @@ const StartScreen: React.FC<StartScreenProps> = ({
 
   const indexData = useMemo(() => {
     const categories: Record<string, any> = {};
+    const profileNamesById: Record<string, string> = {};
 
     for (const path in modules) {
-      const profile = modules[path] as any;
+      const mod = modules[path] as any;
+      const profile = mod?.default ?? mod;
 
-      // ❗ Удаляем предферменты
-      if (!profile.base) continue;
+      // Удаляем служебные / неосновные профили без base
+      if (!profile?.base) continue;
 
       const id = profile.id;
       const category = profile.category || "other";
       const subtype = profile.subtype || id;
       const name = profile.name || id;
+
+      profileNamesById[id] = name;
 
       if (!categories[category]) {
         categories[category] = {
@@ -142,15 +146,18 @@ const StartScreen: React.FC<StartScreenProps> = ({
         };
       }
 
-      // ❗ Передаём только id, без .json
       categories[category].subtypes[subtype] = {
         name,
         profile: id,
       };
     }
 
-    return { categories };
-  }, []);
+    return { categories, profileNamesById };
+  }, [modules]);
+
+  const getProfileNameById = (profileId: string) => {
+    return indexData.profileNamesById[profileId] ?? profileId;
+  };
 
   // -----------------------------
   // SEARCH
@@ -165,7 +172,7 @@ const StartScreen: React.FC<StartScreenProps> = ({
 
     for (const [catKey, cat] of Object.entries(indexData.categories)) {
       for (const [subKey, sub] of Object.entries(
-        cat.subtypes as Record<string, { name: string; profile: string }>
+        (cat as any).subtypes as Record<string, { name: string; profile: string }>
       )) {
         if (sub.name.toLowerCase().includes(q)) {
           results.push({
@@ -228,7 +235,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
   // -----------------------------
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px" }}>
-      {/* УСЛОВИЯ ПРОИЗВОДСТВА */}
       <Section title="Условия производства">
         <div
           style={{
@@ -326,7 +332,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
         </div>
       </Section>
 
-      {/* ПОИСК */}
       <Section title="Поиск профилей">
         <input
           value={searchQuery}
@@ -371,7 +376,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
         )}
       </Section>
 
-      {/* НЕДАВНИЕ И ИЗБРАННОЕ */}
       {!searchQuery && (
         <>
           {recent.length > 0 && (
@@ -386,7 +390,10 @@ const StartScreen: React.FC<StartScreenProps> = ({
                 {recent.map((id) => (
                   <button
                     key={id}
-                    onClick={() => onProfileSelect(id)}
+                    onClick={() => {
+                      addRecent(id);
+                      onProfileSelect(id);
+                    }}
                     style={{
                       padding: "12px",
                       borderRadius: "8px",
@@ -395,7 +402,7 @@ const StartScreen: React.FC<StartScreenProps> = ({
                       textAlign: "left",
                     }}
                   >
-                    {id}
+                    {getProfileNameById(id)}
                   </button>
                 ))}
               </div>
@@ -414,7 +421,10 @@ const StartScreen: React.FC<StartScreenProps> = ({
                 {favorites.map((id) => (
                   <button
                     key={id}
-                    onClick={() => onProfileSelect(id)}
+                    onClick={() => {
+                      addRecent(id);
+                      onProfileSelect(id);
+                    }}
                     style={{
                       padding: "12px",
                       borderRadius: "8px",
@@ -423,7 +433,7 @@ const StartScreen: React.FC<StartScreenProps> = ({
                       textAlign: "left",
                     }}
                   >
-                    {id}
+                    {getProfileNameById(id)}
                   </button>
                 ))}
               </div>
@@ -432,7 +442,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
         </>
       )}
 
-      {/* КАТЕГОРИИ */}
       {!searchQuery && !selectedCategory && (
         <Section title="Категории теста">
           <div
@@ -461,7 +470,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
         </Section>
       )}
 
-      {/* ПОДТИПЫ */}
       {selectedCategory && !selectedSubtype && (
         <Section title={indexData.categories[selectedCategory].name}>
           <div
@@ -513,7 +521,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
         </Section>
       )}
 
-      {/* ПРОФИЛЬ */}
       {selectedCategory && selectedSubtype && (
         <Section
           title={
@@ -570,7 +577,6 @@ const StartScreen: React.FC<StartScreenProps> = ({
         </Section>
       )}
 
-      {/* МОИ РЕЦЕПТЫ */}
       {customRecipes.length > 0 && (
         <Section title="Мои рецепты">
           <div
